@@ -1,3 +1,4 @@
+import { storedDefault } from '@/shared/i18n';
 import { revision } from '@/shared/revision';
 import {
   type Catalog,
@@ -9,6 +10,7 @@ import {
   updateCatalogEntry,
 } from '../api/catalog-api';
 import { catalog } from './catalog.svelte';
+import { storeCatalogLabels } from './catalog-model';
 
 /** Takes the catalog the backend answered with and tells the interface its data changed. */
 function adopt(next: Catalog): void {
@@ -17,11 +19,11 @@ function adopt(next: Catalog): void {
 }
 
 export async function defineEntry(record: CatalogRecord): Promise<void> {
-  adopt(await defineCatalogEntry(record));
+  adopt(await defineCatalogEntry(storeCatalogLabels(record, storedDefault)));
 }
 
 export async function updateEntry(record: CatalogRecord): Promise<void> {
-  adopt(await updateCatalogEntry(record));
+  adopt(await updateCatalogEntry(storeCatalogLabels(record, storedDefault)));
 }
 
 export async function removeEntry(entry: CatalogEntry): Promise<void> {

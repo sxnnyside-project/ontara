@@ -3,7 +3,7 @@ import { toCommandError } from '@/shared/backend';
 import { t } from '@/shared/i18n';
 import { notices } from '@/shared/notice';
 import { revision } from '@/shared/revision';
-import { Button, CheckField, SelectField, TagInput, TextField } from '@/shared/ui';
+import { Button, CheckField, SectionHeading, SelectField, TagInput, TextField } from '@/shared/ui';
 import { type EntityDetail, updateEntity } from '../api/entity-api';
 import { draftOf, editOf, NAME_KINDS, newAlternativeName, sameDraft } from '../state/entity-model';
 
@@ -60,60 +60,62 @@ function removeName(index: number) {
 </script>
 
 <form
-  class="flex flex-col gap-5 max-w-2xl"
+  class="grid gap-6 grid-cols-[minmax(0,1fr)_18rem] items-start"
   onsubmit={(event) => {
     event.preventDefault();
     save();
   }}
 >
-  <TextField label={t('entity.name')} bind:value={draft.name} required />
-  <TextField label={t('entity.sortName')} bind:value={draft.sort_name} hint={t('entity.sortNameHint')} />
-  <TextField label={t('entity.summary')} bind:value={draft.summary} hint={t('entity.summaryHint')} />
-  <TextField label={t('entity.description')} bind:value={draft.description} multiline rows={10} />
-  <TagInput label={t('entity.tags')} bind:value={draft.tags} placeholder={t('entity.tagsPlaceholder')} />
-
-  <section class="flex flex-col gap-2">
-    <div class="flex items-center justify-between">
-      <span class="text-[11px] font-mono uppercase tracking-wider text-[var(--color-text-muted)]">
-        {t('inspector.aliases')}
-      </span>
-      <Button size="sm" variant="ghost" icon="i-mingcute:add-line" onclick={addName}>
-        {t('common.add')}
-      </Button>
-    </div>
-    {#each draft.names as name, index}
-      <div class="grid grid-cols-[1fr_9rem_auto] items-end gap-2">
-        <TextField label={t('entity.alternativeName')} bind:value={name.name} />
-        <SelectField
-          label={t('entity.nameKind')}
-          bind:value={name.kind}
-          options={NAME_KINDS.map((kind) => ({ value: kind, label: t(`nameKinds.${kind}`) }))}
-        />
-        <Button
-          variant="ghost"
-          icon="i-mingcute:delete-2-line"
-          title={t('common.remove')}
-          onclick={() => removeName(index)}
-        />
-      </div>
-    {:else}
-      <p class="m-0 text-xs text-[var(--color-text-muted)]">{t('entity.noAlternativeNames')}</p>
-    {/each}
-  </section>
-
-  <CheckField label={t('entity.archived')} bind:checked={draft.archived} hint={t('entity.archivedHint')} />
-
-  {#if error}
-    <p class="m-0 text-xs font-mono text-[var(--color-finding-error)]" role="alert">{error}</p>
-  {/if}
-
-  <div class="flex items-center gap-2 sticky bottom-0 py-3 bg-[var(--color-surface-base)] border-t border-[var(--color-border-subtle)]">
-    <Button type="submit" variant="primary" icon="i-mingcute:check-line" disabled={!dirty || busy || draft.name.trim() === ''}>
-      {t('common.save')}
-    </Button>
-    <Button variant="ghost" disabled={!dirty || busy} onclick={reset}>{t('common.discard')}</Button>
-    {#if dirty}
-      <span class="text-[11px] font-mono text-[var(--color-canon-provisional)]">{t('common.unsaved')}</span>
+  <div class="flex flex-col gap-3 min-w-0">
+    <TextField label={t('entity.description')} bind:value={draft.description} multiline rows={16} placeholder={t('entity.descriptionPlaceholder')} />
+    {#if error}
+      <p class="m-0 text-xs font-mono text-[var(--color-finding-error)]" role="alert">{error}</p>
     {/if}
+    <div class="flex items-center gap-2">
+      <Button type="submit" variant="primary" icon="i-mingcute:check-line" disabled={!dirty || busy || draft.name.trim() === ''}>
+        {t('common.save')}
+      </Button>
+      <Button variant="ghost" disabled={!dirty || busy} onclick={reset}>{t('common.discard')}</Button>
+      {#if dirty}
+        <span class="text-[11px] font-mono text-[var(--color-canon-provisional)]">{t('common.unsaved')}</span>
+      {/if}
+    </div>
   </div>
+
+  <aside class="flex flex-col gap-5 rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface-panel)] p-4">
+    <TagInput label={t('entity.tags')} bind:value={draft.tags} placeholder={t('entity.tagsPlaceholder')} />
+
+    <section class="flex flex-col gap-2">
+      <SectionHeading title={t('inspector.aliases')}>
+        {#snippet actions()}
+          <Button size="sm" variant="ghost" icon="i-mingcute:add-line" title={t('common.add')} onclick={addName} />
+        {/snippet}
+      </SectionHeading>
+      {#each draft.names as name, index}
+        <div class="flex flex-col gap-1.5 rounded border border-[var(--color-border-subtle)] p-2">
+          <TextField label={t('entity.alternativeName')} bind:value={name.name} />
+          <div class="flex items-end gap-1.5">
+            <div class="flex-1">
+              <SelectField
+                label={t('entity.nameKind')}
+                bind:value={name.kind}
+                options={NAME_KINDS.map((kind) => ({ value: kind, label: t(`nameKinds.${kind}`) }))}
+              />
+            </div>
+            <Button variant="ghost" icon="i-mingcute:delete-2-line" title={t('common.remove')} onclick={() => removeName(index)} />
+          </div>
+        </div>
+      {:else}
+        <p class="m-0 text-xs text-[var(--color-text-muted)]">{t('entity.noAlternativeNames')}</p>
+      {/each}
+    </section>
+
+    <details class="text-xs">
+      <summary class="cursor-pointer select-none text-[var(--color-text-secondary)]">{t('entity.moreOptions')}</summary>
+      <div class="mt-3 flex flex-col gap-3">
+        <TextField label={t('entity.sortName')} bind:value={draft.sort_name} hint={t('entity.sortNameHint')} />
+        <CheckField label={t('entity.archived')} bind:checked={draft.archived} hint={t('entity.archivedHint')} />
+      </div>
+    </details>
+  </aside>
 </form>

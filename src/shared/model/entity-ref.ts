@@ -1,3 +1,4 @@
+import { tDefault } from '@/shared/i18n';
 import type { EntityId, TypeKey } from './ids';
 
 /**
@@ -23,4 +24,9 @@ export interface ReferenceCount {
 export interface RecordRef {
   kind: string;
   id: string;
+}
+
+/** The name of an entity's type in the interface language, unless the author renamed it. */
+export function typeLabelOf(entity: Pick<EntityRef, 'entity_type' | 'type_label'>): string {
+  return tDefault(`typeNames.${entity.entity_type}`, entity.type_label);
 }

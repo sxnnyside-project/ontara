@@ -19,6 +19,7 @@ allow = [
     "ISC",
     "Unicode-3.0",
     "Zlib",
+    "CDLA-Permissive-2.0", # webpki-roots, the certificate roots ureq trusts for provider calls
     "MPL-2.0", # cssparser, cssparser-macros, selectors, dtoa-short, option-ext (Tauri's HTML tooling and dirs)
 ]
 confidence-threshold = 0.8

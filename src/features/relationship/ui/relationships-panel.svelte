@@ -67,7 +67,7 @@ async function remove() {
   {#each views as view (view.relationship.id)}
     {@const end = otherEnd(view)}
     <article class="rounded border border-[var(--color-border-subtle)] bg-[var(--color-surface-panel)] p-3 flex items-start gap-3">
-      <span class="i-mingcute:git-branch-line w-4 h-4 mt-0.5 text-[var(--color-crown-red)] shrink-0"></span>
+      <span class="i-mingcute:git-branch-line w-4 h-4 mt-0.5 text-[var(--color-crown-red-text)] shrink-0"></span>
       <div class="flex-1 min-w-0 flex flex-col gap-1">
         <div class="flex items-center gap-1.5 flex-wrap text-xs">
           <span class="font-mono text-[var(--color-text-secondary)]">

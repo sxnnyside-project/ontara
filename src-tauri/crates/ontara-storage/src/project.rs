@@ -2,21 +2,23 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use ontara_core::{
-    AssetFile, Calendar, CalendarId, EditError, Entity, ModelEditor, ModelReader, ModelReaderExt,
-    Timestamp, TypeKey, UniverseProfile, Writer, builtin_appearance_kinds, builtin_canon_states,
-    builtin_diplomatic_stances, builtin_editorial_levels, builtin_entity_types,
-    builtin_property_set, builtin_relationship_types, builtin_vocabulary_terms,
-    gregorian_definition,
+    AssetFile, Calendar, CalendarId, ChangeStatus, EditError, Entity, ModelEditor, ModelReader,
+    ModelReaderExt, Proposal, ProposalId, ProposedChange, Timestamp, TypeKey, UniverseProfile,
+    Writer, builtin_appearance_kinds, builtin_canon_states, builtin_diplomatic_stances,
+    builtin_editorial_levels, builtin_entity_types, builtin_property_set,
+    builtin_relationship_types, builtin_vocabulary_terms, gregorian_definition,
 };
 use rusqlite::Connection;
 
 use crate::asset_import::{self, ImportedAsset};
-use crate::backup;
+use crate::backup::{self, BackupFile};
 use crate::error::StorageError;
 use crate::integrity::{self, IntegrityReport};
+use crate::journal::{self, ChangeSummary, Direction, History};
 use crate::layout::ProjectLayout;
 use crate::manifest::ProjectManifest;
 use crate::migration::{current_schema_version, latest_schema_version, migrate};
+use crate::proposals::{self, AiPolicy};
 use crate::sqlite_model::SqliteModel;
 
 /// What to do when a project was written by an older schema.
@@ -35,6 +37,24 @@ pub struct Project {
     layout: ProjectLayout,
     manifest: ProjectManifest,
     connection: Connection,
+    /// What the next edits are called in the history, and when they happen.
+    change_context: ChangeContext,
+}
+
+/// The name and time the history gives to the edits made while it is set.
+#[derive(Debug, Clone)]
+struct ChangeContext {
+    label: String,
+    at: Timestamp,
+}
+
+impl Default for ChangeContext {
+    fn default() -> Self {
+        Self {
+            label: "edit".to_owned(),
+            at: Timestamp::from_unix_millis(0),
+        }
+    }
 }
 
 impl Project {
@@ -109,6 +129,7 @@ impl Project {
             layout,
             manifest,
             connection,
+            change_context: ChangeContext::default(),
         })
     }
 
@@ -155,10 +176,14 @@ impl Project {
             &mut ModelEditor<'_, SqliteModel<'_>>,
         ) -> Result<T, EditError<StorageError>>,
     ) -> Result<T, EditError<StorageError>> {
-        let transaction = self
-            .connection
-            .transaction()
-            .map_err(|error| EditError::Repository(StorageError::from(error)))?;
+        let repository = |error: rusqlite::Error| EditError::Repository(StorageError::from(error));
+        let transaction = self.connection.transaction().map_err(repository)?;
+        let set = journal::open_set(
+            &transaction,
+            &self.change_context.label,
+            self.change_context.at,
+        )
+        .map_err(EditError::Repository)?;
 
         let outcome = {
             let mut model = SqliteModel::new(&transaction);
@@ -174,13 +199,141 @@ impl Project {
 
         match outcome {
             Ok(value) => {
-                transaction
-                    .commit()
-                    .map_err(|error| EditError::Repository(StorageError::from(error)))?;
+                journal::close_set(&transaction, set).map_err(EditError::Repository)?;
+                transaction.commit().map_err(repository)?;
                 Ok(value)
             }
             Err(error) => Err(error), // Dropping the transaction rolls it back.
         }
+    }
+
+    /// Records a proposal. It touches nothing of the model and is not part of the undo history.
+    pub fn add_proposal(&self, proposal: &Proposal) -> Result<(), StorageError> {
+        proposals::insert(&self.connection, proposal)
+    }
+
+    /// The proposals, newest first, with where each change stands.
+    pub fn proposals(&self) -> Result<Vec<Proposal>, StorageError> {
+        proposals::list(&self.connection)
+    }
+
+    /// Removes a proposal that has been dealt with.
+    pub fn discard_proposal(&self, id: &ProposalId) -> Result<(), StorageError> {
+        proposals::remove(&self.connection, id)
+    }
+
+    /// What assistants may reach in this project.
+    pub fn ai_policy(&self) -> Result<AiPolicy, StorageError> {
+        proposals::policy(&self.connection)
+    }
+
+    pub fn set_ai_policy(&self, policy: AiPolicy) -> Result<(), StorageError> {
+        proposals::set_policy(&self.connection, policy)
+    }
+
+    /// Decides the changes of a proposal in one edit. Each change in `approve` is applied through
+    /// `apply`, in position order, in a savepoint of its own: one the model refuses is marked
+    /// failed with the reason and leaves nothing behind, and the rest still go through. Each in
+    /// `reject` is marked rejected. The statuses and what the changes did are one change set, so
+    /// undoing it puts both back.
+    pub fn decide_proposal(
+        &mut self,
+        id: &ProposalId,
+        approve: &[u32],
+        reject: &[u32],
+        mut apply: impl FnMut(
+            &mut ModelEditor<'_, SqliteModel<'_>>,
+            &ProposedChange,
+        ) -> Result<(), EditError<StorageError>>,
+    ) -> Result<Proposal, StorageError> {
+        let mut transaction = self.connection.transaction()?;
+        let set = journal::open_set(
+            &transaction,
+            &self.change_context.label,
+            self.change_context.at,
+        )?;
+        let proposal = proposals::get(&transaction, id)?.ok_or_else(|| {
+            StorageError::InvalidManifest(format!("proposal {id} does not exist"))
+        })?;
+
+        for change in &proposal.changes {
+            if change.status != ChangeStatus::Pending {
+                continue;
+            }
+            if reject.contains(&change.position) {
+                proposals::set_status(
+                    &transaction,
+                    id,
+                    change.position,
+                    ChangeStatus::Rejected,
+                    None,
+                )?;
+            } else if approve.contains(&change.position) {
+                let outcome = {
+                    let savepoint = transaction.savepoint()?;
+                    let result = {
+                        let mut model = SqliteModel::new(&savepoint);
+                        let mut editor = ModelEditor::new(&mut model);
+                        apply(&mut editor, &change.change)
+                    };
+                    match result {
+                        Ok(()) => {
+                            savepoint.commit()?;
+                            Ok(())
+                        }
+                        // Dropping the savepoint rolls back whatever the change did.
+                        Err(error) => Err(error),
+                    }
+                };
+                match outcome {
+                    Ok(()) => proposals::set_status(
+                        &transaction,
+                        id,
+                        change.position,
+                        ChangeStatus::Applied,
+                        None,
+                    )?,
+                    Err(error) => proposals::set_status(
+                        &transaction,
+                        id,
+                        change.position,
+                        ChangeStatus::Failed,
+                        Some(&error.to_string()),
+                    )?,
+                }
+            }
+        }
+        {
+            let model = SqliteModel::new(&transaction);
+            model.prune_instants()?;
+        }
+        journal::close_set(&transaction, set)?;
+        let decided = proposals::get(&transaction, id)?
+            .ok_or_else(|| StorageError::InvalidManifest(format!("proposal {id} vanished")))?;
+        transaction.commit()?;
+        Ok(decided)
+    }
+
+    /// Names the edits made from now on in the history, and says when they happen. The label is
+    /// a stable machine name (`entity.update`); the interface turns it into words.
+    pub fn set_change_context(&mut self, label: &str, at: Timestamp) {
+        label.clone_into(&mut self.change_context.label);
+        self.change_context.at = at;
+    }
+
+    /// The edits that can be undone and redone.
+    pub fn history(&self) -> Result<History, StorageError> {
+        journal::history(&self.connection)
+    }
+
+    /// Reverses the latest edit, or does nothing when there is none.
+    pub fn undo(&mut self, now: Timestamp) -> Result<Option<ChangeSummary>, StorageError> {
+        journal::apply(&mut self.connection, Direction::Undo, now)
+    }
+
+    /// Applies again the edit that was last undone, or does nothing when there is none.
+    pub fn redo(&mut self, now: Timestamp) -> Result<Option<ChangeSummary>, StorageError> {
+        journal::apply(&mut self.connection, Direction::Redo, now)
     }
 
     /// Brings a file into the project: copies it under `assets/`, and records an entity of
@@ -290,7 +443,27 @@ impl Project {
 
     /// Writes a verified backup into `backups/` and returns its path.
     pub fn create_backup(&self, now: Timestamp) -> Result<PathBuf, StorageError> {
-        backup::create(&self.connection, &self.layout, now, "backup")
+        self.create_backup_labeled("backup", now)
+    }
+
+    /// Like [`Project::create_backup`], with a label that says what made it. A label is lowercase
+    /// words joined by hyphens; backups of the same label are pruned together.
+    pub fn create_backup_labeled(
+        &self,
+        label: &str,
+        now: Timestamp,
+    ) -> Result<PathBuf, StorageError> {
+        backup::create(&self.connection, &self.layout, now, label)
+    }
+
+    /// The backups of this project, newest first.
+    pub fn backups(&self) -> Result<Vec<BackupFile>, StorageError> {
+        backup::list(&self.layout)
+    }
+
+    /// Deletes the oldest backups with `label` so only the `keep` newest remain.
+    pub fn prune_backups(&self, label: &str, keep: usize) -> Result<usize, StorageError> {
+        backup::prune(&self.layout, label, keep)
     }
 
     /// Closes the project, surfacing any failure to flush the database.
@@ -325,6 +498,7 @@ impl Project {
             layout,
             manifest,
             connection,
+            change_context: ChangeContext::default(),
         })
     }
 }
@@ -374,6 +548,9 @@ fn open_connection(database: &Path) -> Result<Connection, StorageError> {
     // Write-ahead logging keeps readers from blocking the writer; the log is checkpointed and
     // removed when the last connection closes, so a closed project is a single database file.
     connection.pragma_update(None, "journal_mode", "WAL")?;
+    // The local MCP server is a second process on the same project; wait for it, and for the
+    // application, rather than failing a moment's overlap.
+    connection.busy_timeout(std::time::Duration::from_secs(5))?;
     Ok(connection)
 }
 

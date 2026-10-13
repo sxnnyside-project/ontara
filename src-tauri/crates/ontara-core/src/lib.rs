@@ -37,6 +37,7 @@ mod place;
 mod polity;
 mod property_definition;
 mod property_value;
+mod proposal;
 mod record;
 mod record_ref;
 mod relationship;
@@ -81,7 +82,7 @@ pub use diplomatic_stance::{DiplomaticStance, builtin_diplomatic_stances};
 pub use editorial_level::{EditorialLevel, builtin_editorial_levels};
 pub use editorial_node::{EditorialNode, ReadingStep, reading_order};
 pub use entity::{Entity, EntityName, NameKind};
-pub use entity_search::{EntityFilter, find_entities};
+pub use entity_search::{EntityFilter, MATCH_END, MATCH_START, TextHit, find_entities};
 pub use entity_type::{EntityRole, EntityType, builtin_entity_types};
 pub use error::DomainError;
 pub use event::{CausalityKind, EventCausality};
@@ -101,7 +102,7 @@ pub use identifier::{
     DiplomaticRelationId, EntityId, EventCausalityId, FactionParentId, FamilyTieId,
     ItemOwnershipId, ItemPowerId, MembershipId, NoteId, OfficeId, OfficeTenureId, PartnershipId,
     PlaceBorderId, PlaceContainmentId, PlaceResourceId, PolitySuccessionId, PolitySymbolId,
-    PropertyDefinitionId, PropertyValueId, RelationshipId, ReligionTenetId, SourceId,
+    PropertyDefinitionId, PropertyValueId, ProposalId, RelationshipId, ReligionTenetId, SourceId,
     SourceReferenceId,
 };
 pub use item::{ItemOwnership, ItemPower, ItemProfile, ItemRarity};
@@ -122,6 +123,10 @@ pub use property_definition::{
     PropertyOwner, builtin_property_set,
 };
 pub use property_value::{PropertyContent, PropertyValue, PropertyValueOwner};
+pub use proposal::{
+    ChangeStatus, EntityTarget, MAX_CHANGES, MAX_TEXT, Proposal, ProposalChange, ProposalSource,
+    ProposedChange,
+};
 pub use record::Record;
 pub use record_ref::{RecordKind, RecordRef};
 pub use relationship::{Lifecycle, Relationship};

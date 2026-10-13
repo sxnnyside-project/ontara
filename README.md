@@ -29,7 +29,7 @@
 
 General-purpose notes tools store a universe as documents, so contradictions, indirect relationships and appearances across chapters are left to manual upkeep. Ontara keeps one queryable model and derives every view from it.
 
-Projects are portable local folders you own. Nothing requires an account or a network connection. The project is in its foundation phase: the application shell, tooling and architecture exist, and the product features are not implemented yet.
+Projects are portable local folders you own. Nothing requires an account or a network connection. The product features below are implemented and verified by the quality gate; the project is pre-release (0.1.0) and has not been tried against real providers or on every platform yet.
 
 ### Philosophy
 
@@ -39,16 +39,16 @@ Developed by Sxnnyside Project in collaboration with Crown Red Editorial (Sxnnys
 
 ## Features
 
-The features below define the product scope. They are not implemented yet.
+Everything below is implemented. Assistants and the MCP server are off by default and never write to the universe without your approval.
 
 - **Typed Model**: Configurable entity types, directed and undirected relationships, canon status and custom terminology.
 - **Graph Engine**: Rust domain engine for traversal, filtering and neighborhood queries over the narrative graph.
 - **Editorial Structure**: Series, volumes, parts, chapters and scenes, independent of in-universe chronology.
 - **Appearances and Events**: Classified appearances per chapter or scene, and events ordered by in-universe time.
-- **Specialized Views**: Table, tree, graph, appearance matrix and timeline over the same data.
+- **Specialized Views**: Table, tree, graph, appearance matrix and timeline over the same data. The graph legend lets you change each link kind's color, pattern and mark.
 - **Consistency Checks**: Deterministic, explainable findings that never modify canon on their own.
-- **Portable Projects**: SQLite persistence, relative asset references, export, backup and recovery.
-- **Optional AI**: Bring-your-own-key generation and a local MCP server, always behind explicit approval.
+- **Portable Projects**: SQLite persistence, relative asset references, Markdown and JSON export, daily backups, and undo and redo across sessions.
+- **Optional AI**: Bring-your-own-key generation (keys stay in the OS keychain) and a local MCP server over stdio. Every suggestion is a proposal you approve change by change.
 
 ## Installation
 

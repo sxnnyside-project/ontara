@@ -1,4 +1,5 @@
 <script lang="ts">
+import { definitionLabel, groupLabel } from './property-labels';
 import { t } from '@/shared/i18n';
 import type {
   EntityRef,
@@ -41,7 +42,7 @@ const sections = $derived.by<Section[]>(() => {
   return [...buckets.entries()]
     .map(([key, items]) => ({
       key,
-      label: key === '' ? t('properties.ungrouped') : (labelOf.get(key)?.label ?? key),
+      label: key === '' ? t('properties.ungrouped') : groupLabel(labelOf.get(key), key),
       order: key === '' ? Number.MAX_SAFE_INTEGER : (labelOf.get(key)?.sort_order ?? 0),
       definitions: [...items].sort((a, b) => a.sort_order - b.sort_order),
     }))
@@ -50,18 +51,30 @@ const sections = $derived.by<Section[]>(() => {
 
 /** Candidates are loaded once per entity type and reused by every row. */
 let candidateCache = $state<Record<string, EntityRef[]>>({});
+const requested = new Set<string>();
+
+// Loading happens here and not while rendering: a template may read state, never write it.
+$effect(() => {
+  for (const definition of definitions) {
+    const type = definition.data_type;
+    if (type.type !== 'entity_reference') continue;
+    const key = type.entity_type ?? '';
+    if (requested.has(key)) continue;
+    requested.add(key);
+    loadCandidates(type.entity_type)
+      .then((found) => {
+        candidateCache[key] = found;
+      })
+      .catch(() => {
+        requested.delete(key);
+      });
+  }
+});
 
 function candidatesFor(definition: PropertyDefinition): EntityRef[] {
   const type = definition.data_type;
   if (type.type !== 'entity_reference') return [];
-  const key = type.entity_type ?? '';
-  if (!(key in candidateCache)) {
-    candidateCache[key] = [];
-    loadCandidates(type.entity_type).then((found) => {
-      candidateCache[key] = found;
-    });
-  }
-  return candidateCache[key] ?? [];
+  return candidateCache[type.entity_type ?? ''] ?? [];
 }
 
 function valuesOf(definition: PropertyDefinition): PropertyValue[] {
@@ -88,7 +101,7 @@ function valuesOf(definition: PropertyDefinition): PropertyValue[] {
           {@const current = valuesOf(definition)}
           <div class="flex flex-col gap-1.5">
             <div class="flex items-baseline gap-2">
-              <span class="text-xs font-medium text-[var(--color-text-primary)]">{definition.label}</span>
+              <span class="text-xs font-medium text-[var(--color-text-primary)]">{definitionLabel(definition)}</span>
               {#if definition.description}
                 <span class="text-[11px] text-[var(--color-text-muted)] truncate">{definition.description}</span>
               {/if}

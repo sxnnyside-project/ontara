@@ -1,4 +1,5 @@
 <script lang="ts">
+import { definitionLabel } from './property-labels';
 import { t } from '@/shared/i18n';
 import type {
   EntityRef,
@@ -9,6 +10,7 @@ import type {
   PropertyValueInput,
   PropertyValueOwner,
 } from '@/shared/model';
+import { typeLabelOf } from '@/shared/model';
 import { Button, CheckField, InstantField, SelectField, TextField } from '@/shared/ui';
 
 interface Props {
@@ -128,7 +130,7 @@ function touch() {
       {:else if data.type === 'integer' || data.type === 'real'}
         <TextField label={t('properties.value')} bind:value={number} type="number" oninput={touch} mono />
       {:else if data.type === 'boolean'}
-        <CheckField label={definition.label} bind:checked={flag} onchange={touch} />
+        <CheckField label={definitionLabel(definition)} bind:checked={flag} onchange={touch} />
       {:else if data.type === 'date'}
         <InstantField label={t('properties.value')} bind:value={moment} onchange={touch} />
       {:else if data.type === 'choice'}
@@ -145,7 +147,7 @@ function touch() {
           bind:value={reference}
           options={candidates.map((entity) => ({
             value: entity.id,
-            label: `${entity.name} · ${entity.type_label}`,
+            label: `${entity.name} · ${typeLabelOf(entity)}`,
           }))}
           placeholder={t('properties.chooseEntity')}
           onchange={touch}

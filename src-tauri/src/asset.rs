@@ -61,7 +61,7 @@ pub fn import(
     path: &str,
     name: Option<&str>,
 ) -> Result<ImportedAsset, CommandError> {
-    workspace.write(|project| {
+    workspace.record("asset.import", |project| {
         let imported = project.import_asset(
             std::path::Path::new(path),
             &TypeKey::new("asset")?,
@@ -131,7 +131,7 @@ pub fn attachments_of(
 }
 
 pub fn attach(workspace: &Workspace, input: NewAttachment) -> Result<Attachment, CommandError> {
-    workspace.write(|project| {
+    workspace.record("asset.attach", |project| {
         let mut attachment = Attachment::new(input.owner, input.asset, Timestamp::now());
         attachment.purpose = input.purpose;
         attachment.note = input.note;
@@ -140,7 +140,9 @@ pub fn attach(workspace: &Workspace, input: NewAttachment) -> Result<Attachment,
 }
 
 pub fn detach(workspace: &Workspace, id: &AttachmentId) -> Result<(), CommandError> {
-    workspace.write(|project| Ok(project.edit(|editor| editor.detach_asset(id))?))
+    workspace.record("asset.detach", |project| {
+        Ok(project.edit(|editor| editor.detach_asset(id))?)
+    })
 }
 
 /// The bytes of an asset, for previewing it.

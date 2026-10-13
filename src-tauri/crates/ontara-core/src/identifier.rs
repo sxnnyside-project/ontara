@@ -89,6 +89,10 @@ define_identifier!(
     /// Stable identity of one canon state change.
     CanonStateChangeId
 );
+define_identifier!(
+    /// Stable identity of a proposal of changes made by an assistant.
+    ProposalId
+);
 
 // <generated ids>
 define_identifier!(

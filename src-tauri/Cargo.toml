@@ -28,6 +28,10 @@ uuid = { version = "1", features = ["v5", "v7", "serde"] }
 tauri = { version = "2", features = [] }
 tauri-build = { version = "2", features = [] }
 tauri-plugin-dialog = "2"
+# Outbound calls to the model providers the author configures, made by the backend only.
+ureq = { version = "3", features = ["json"] }
+# The operating system's credential store holds provider keys; they are never written to a file.
+keyring = { version = "3", default-features = false, features = ["apple-native", "windows-native", "linux-native"] }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
@@ -60,6 +64,16 @@ readme.workspace = true
 keywords.workspace = true
 categories.workspace = true
 publish = false
+default-run = "ontara"
+
+[[bin]]
+name = "ontara"
+path = "src/main.rs"
+
+[[bin]]
+# The local MCP server: a separate program so it needs no window, and keeps a console on Windows.
+name = "ontara-mcp"
+path = "src/bin/ontara_mcp.rs"
 
 [lib]
 # `app_lib` and the three crate types are required by Tauri v2.
@@ -73,11 +87,11 @@ tauri-build.workspace = true
 ontara-core.workspace = true
 ontara-storage.workspace = true
 serde.workspace = true
+serde_json.workspace = true
 tauri.workspace = true
 tauri-plugin-dialog.workspace = true
-
-[dev-dependencies]
-serde_json.workspace = true
+ureq.workspace = true
+keyring.workspace = true
 tempfile.workspace = true
 
 [lints]

@@ -12,6 +12,7 @@ mod polity;
 mod properties;
 mod queries;
 mod removal;
+mod search;
 mod supporting;
 
 use ontara_core::{Instant, Repository, Temporal};

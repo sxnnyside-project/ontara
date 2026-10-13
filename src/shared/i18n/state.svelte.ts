@@ -1,26 +1,14 @@
-import { en } from './locales/en';
-import { es } from './locales/es';
-import { workspaceEn } from './locales/workspace-en';
-import { workspaceEs } from './locales/workspace-es';
-import type { SupportedLocale, TranslationKey } from './types';
+import type { SupportedLocale, TextGroup } from './define';
+import { groups } from './texts';
+import type { TranslationKey } from './types';
 
-type Dictionary = Record<string, Record<string, string>>;
-
-/** Joins the sections of two dictionaries; a section present in both keeps the keys of each. */
-function merge(...parts: Dictionary[]): Dictionary {
-  const joined: Dictionary = {};
-  for (const part of parts) {
-    for (const [section, fields] of Object.entries(part)) {
-      joined[section] = { ...joined[section], ...fields };
-    }
+/** The groups joined by section, so a lookup is `texts[section][key][locale]`. */
+const texts: TextGroup = {};
+for (const group of groups) {
+  for (const [section, entries] of Object.entries(group as TextGroup)) {
+    texts[section] = { ...texts[section], ...entries };
   }
-  return joined;
 }
-
-const locales: Record<SupportedLocale, Dictionary> = {
-  en: merge(en as unknown as Dictionary, workspaceEn),
-  es: merge(es as unknown as Dictionary, workspaceEs as unknown as Dictionary),
-};
 
 let currentLocale = $state<SupportedLocale>('es');
 
@@ -36,21 +24,39 @@ export function toggleLocale(): void {
   currentLocale = currentLocale === 'es' ? 'en' : 'es';
 }
 
+/** A text of the interface, with `{name}` placeholders replaced by `params`. */
 export function t(key: TranslationKey, params?: Record<string, string | number>): string {
   const [section, field] = key.split('.') as [string, string];
-  const sectionObj = locales[currentLocale][section];
+  const translation = texts[section]?.[field];
+  if (!translation) return key;
 
-  if (!sectionObj || !(field in sectionObj)) {
-    return key;
-  }
-
-  let value = sectionObj[field] ?? key;
-
+  let value = translation[currentLocale];
   if (params) {
-    for (const [paramKey, paramValue] of Object.entries(params)) {
-      value = value.replaceAll(`{${paramKey}}`, String(paramValue));
+    for (const [name, replacement] of Object.entries(params)) {
+      value = value.replaceAll(`{${name}}`, String(replacement));
     }
   }
-
   return value;
+}
+
+/**
+ * The text a built-in catalog entry shows. While the stored label is still the English default
+ * it is shown in the interface language; once the author renamed it, their words win.
+ */
+export function tDefault(key: string, stored: string): string {
+  const [section, field] = key.split('.') as [string, string];
+  const translation = texts[section]?.[field];
+  return translation && translation.en === stored ? translation[currentLocale] : stored;
+}
+
+/**
+ * The label to store for a built-in entry: the English default when what the author sees is the
+ * default in any language, so switching language keeps translating it, and their own words
+ * otherwise.
+ */
+export function storedDefault(key: string, shown: string): string {
+  const [section, field] = key.split('.') as [string, string];
+  const translation = texts[section]?.[field];
+  if (!translation) return shown;
+  return Object.values(translation).includes(shown) ? translation.en : shown;
 }

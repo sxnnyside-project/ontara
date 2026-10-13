@@ -169,18 +169,22 @@ pub fn event(workspace: &Workspace, entity: &EntityId) -> Result<EventView, Comm
 }
 
 pub fn save_event(workspace: &Workspace, detail: EventDetail) -> Result<EventDetail, CommandError> {
-    workspace.write(|project| Ok(project.edit(|editor| editor.set_event_detail(detail))?))
+    workspace.record("timeline.save_event", |project| {
+        Ok(project.edit(|editor| editor.set_event_detail(detail))?)
+    })
 }
 
 pub fn clear_event(workspace: &Workspace, entity: &EntityId) -> Result<(), CommandError> {
-    workspace.write(|project| Ok(project.edit(|editor| editor.clear_event_detail(entity))?))
+    workspace.record("timeline.clear_event", |project| {
+        Ok(project.edit(|editor| editor.clear_event_detail(entity))?)
+    })
 }
 
 pub fn add_causality(
     workspace: &Workspace,
     input: CausalityInput,
 ) -> Result<EventCausality, CommandError> {
-    workspace.write(|project| {
+    workspace.record("timeline.add_causality", |project| {
         let mut record =
             EventCausality::new(input.cause, input.effect, input.kind, Timestamp::now());
         record.note = input.note;
@@ -190,7 +194,7 @@ pub fn add_causality(
 }
 
 pub fn remove_causality(workspace: &Workspace, id: &EventCausalityId) -> Result<(), CommandError> {
-    workspace.write(|project| {
+    workspace.record("timeline.remove_causality", |project| {
         found(
             Reader::<EventCausality>::get(&project.reader(), id)?,
             "causality",

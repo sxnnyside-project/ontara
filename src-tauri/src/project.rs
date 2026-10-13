@@ -25,7 +25,7 @@ pub struct ProjectSummary {
     pub universe: UniverseProfile,
 }
 
-fn summarize(project: &Project) -> Result<ProjectSummary, CommandError> {
+pub(crate) fn summarize(project: &Project) -> Result<ProjectSummary, CommandError> {
     let manifest = project.manifest();
     Ok(ProjectSummary {
         id: manifest.project_id.to_string(),
@@ -58,6 +58,7 @@ pub fn open(
         MigrationPolicy::Refuse
     };
     let project = Project::open(Path::new(path), policy, Timestamp::now())?;
+    crate::backup::keep_automatic(&project, Timestamp::now());
     let summary = summarize(&project)?;
     workspace.replace(project)?;
     Ok(summary)
@@ -83,7 +84,7 @@ pub fn update_universe(
     summary: String,
     description: String,
 ) -> Result<ProjectSummary, CommandError> {
-    workspace.write(|project| {
+    workspace.record("project.update_universe", |project| {
         project.edit(|editor| {
             editor.update_universe_profile(
                 UniverseProfile {
@@ -95,6 +96,38 @@ pub fn update_universe(
             )
         })?;
         summarize(project)
+    })
+}
+
+/// How much the universe holds, for the overview and for knowing how far along it is.
+///
+/// Mirrored by `src/features/project/api/project-api.ts`.
+#[derive(Debug, Serialize)]
+pub struct UniverseCounts {
+    /// Entities that are not archived.
+    pub entities: usize,
+    pub relationships: usize,
+    pub events: usize,
+    pub sections: usize,
+    pub appearances: usize,
+    pub notes: usize,
+}
+
+pub fn counts(workspace: &Workspace) -> Result<UniverseCounts, CommandError> {
+    workspace.read(|project| {
+        let reader = project.reader();
+        Ok(UniverseCounts {
+            entities: reader
+                .entities()?
+                .iter()
+                .filter(|entity| !entity.archived)
+                .count(),
+            relationships: reader.relationships()?.len(),
+            events: reader.events()?.len(),
+            sections: reader.editorial_nodes()?.len(),
+            appearances: reader.appearances()?.len(),
+            notes: reader.notes()?.len(),
+        })
     })
 }
 
@@ -150,6 +183,25 @@ mod tests {
             .expect_err("an empty folder is not a project");
 
         assert_eq!(error.code, "not_a_project");
+    }
+
+    #[test]
+    fn counts_start_at_zero_and_follow_what_is_added() {
+        let (_directory, workspace) = workspace_with_project();
+
+        let empty = counts(&workspace).expect("counts");
+        crate::example::load(&workspace, "en").expect("loads");
+        let full = counts(&workspace).expect("counts");
+
+        assert_eq!(
+            (empty.entities, empty.relationships, empty.sections),
+            (0, 0, 0)
+        );
+        assert_eq!(full.entities, 15);
+        assert_eq!(full.relationships, 6);
+        assert_eq!(full.events, 2);
+        assert_eq!(full.sections, 6);
+        assert_eq!(full.appearances, 6);
     }
 
     #[test]

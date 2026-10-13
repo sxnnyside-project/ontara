@@ -1,25 +1,33 @@
 import type { TypeKey } from '@/shared/model';
+import { getLocale, tDefault } from '@/shared/i18n';
 import { type Catalog, getCatalog } from '../api/catalog-api';
-import { emptyCatalog, labelOf, typeChain } from './catalog-model';
+import { emptyCatalog, labelOf, mapCatalogLabels, typeChain } from './catalog-model';
 
 /** The configuration of the open project, loaded once and replaced after every change to it. */
 class CatalogState {
-  data = $state<Catalog>(emptyCatalog());
+  /** What the project stores: built-in labels are the English defaults until renamed. */
+  stored = $state<Catalog>(emptyCatalog());
   loaded = $state(false);
 
+  /** What the interface shows: the defaults in the interface language, renames as written. */
+  data = $derived.by(() => {
+    void getLocale();
+    return mapCatalogLabels(this.stored, tDefault);
+  });
+
   async load(): Promise<void> {
-    this.data = await getCatalog();
+    this.stored = await getCatalog();
     this.loaded = true;
   }
 
   /** Takes a catalog the backend returned after a configuration change. */
   replace(catalog: Catalog): void {
-    this.data = catalog;
+    this.stored = catalog;
     this.loaded = true;
   }
 
   clear(): void {
-    this.data = emptyCatalog();
+    this.stored = emptyCatalog();
     this.loaded = false;
   }
 

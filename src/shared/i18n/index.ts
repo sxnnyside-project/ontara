@@ -1,12 +1,4 @@
-export {
-  getLocale,
-  setLocale,
-  t,
-  toggleLocale,
-} from './state.svelte';
+export { LOCALES } from './define';
 export { tDynamic } from './dynamic';
-export type {
-  SupportedLocale,
-  TranslationKey,
-  TranslationSchema,
-} from './types';
+export { getLocale, setLocale, storedDefault, t, tDefault, toggleLocale } from './state.svelte';
+export type { SupportedLocale, TranslationKey } from './types';

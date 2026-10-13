@@ -1,6 +1,6 @@
 use tauri::State;
 
-use super::ProjectSummary;
+use super::{ProjectSummary, UniverseCounts};
 use crate::workspace::{CommandError, Workspace};
 
 #[tauri::command(async)]
@@ -53,4 +53,9 @@ pub fn update_universe(
 #[tauri::command(async)]
 pub fn create_project_backup(workspace: State<'_, Workspace>) -> Result<String, CommandError> {
     super::create_backup(&workspace)
+}
+
+#[tauri::command(async)]
+pub fn universe_counts(workspace: State<'_, Workspace>) -> Result<UniverseCounts, CommandError> {
+    super::counts(&workspace)
 }

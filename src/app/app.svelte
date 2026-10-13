@@ -1,6 +1,9 @@
 <script lang="ts">
 import { onMount } from 'svelte';
+import { proposals } from '@/features/assistant';
 import { catalog } from '@/features/catalog';
+import { consistency } from '@/features/consistency';
+import { history } from '@/features/history';
 import { navigation } from '@/features/navigation';
 import { project, WelcomeScreen } from '@/features/project';
 import { toCommandError } from '@/shared/backend';
@@ -25,6 +28,9 @@ async function load() {
 
 async function closed() {
   catalog.clear();
+  consistency.clear();
+  history.clear();
+  proposals.clear();
   navigation.clear();
 }
 

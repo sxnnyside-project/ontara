@@ -1,6 +1,6 @@
 <script lang="ts">
 import { t } from '@/shared/i18n';
-import { TabBar } from '@/shared/ui';
+import { Button, Segmented, ViewFrame } from '@/shared/ui';
 import CanonStatesPanel from './canon-states-panel.svelte';
 import EditorialLevelsPanel from './editorial-levels-panel.svelte';
 import EntityTypesPanel from './entity-types-panel.svelte';
@@ -17,6 +17,7 @@ type Section =
   | 'vocabularies';
 
 let section = $state<Section>('entity_types');
+let createSignal = $state(0);
 
 const tabs = $derived([
   { key: 'entity_types', label: t('config.tabEntityTypes'), icon: 'i-mingcute:box-line' },
@@ -30,25 +31,53 @@ const tabs = $derived([
   { key: 'levels', label: t('config.tabLevels'), icon: 'i-mingcute:book-2-line' },
   { key: 'vocabularies', label: t('config.tabVocabularies'), icon: 'i-mingcute:list-check-line' },
 ]);
+
+const copy = $derived(
+  {
+    entity_types: { hint: t('config.entityTypesHint'), create: t('config.newType') },
+    relationship_types: {
+      hint: t('config.relationshipTypesHint'),
+      create: t('config.newRelationshipType'),
+    },
+    properties: { hint: t('config.propertiesHint'), create: t('config.newProperty') },
+    canon_states: { hint: t('config.canonStatesHint'), create: t('config.newCanonState') },
+    levels: { hint: t('config.levelsHint'), create: t('config.newLevel') },
+    vocabularies: { hint: t('config.vocabulariesHint'), create: t('config.newTerm') },
+  }[section],
+);
 </script>
 
-<div class="flex flex-col gap-4 p-6 max-w-5xl">
+<ViewFrame
+  icon="i-mingcute:settings-3-line"
+  title={t('config.title')}
+  description={copy.hint}
+>
+  {#snippet actions()}
+    <Button variant="primary" icon="i-mingcute:add-line" onclick={() => (createSignal += 1)}>
+      {copy.create}
+    </Button>
+  {/snippet}
+  {#snippet toolbar()}
+    <Segmented
+      bind:value={section as string}
+      label={t('config.title')}
+      options={tabs.map((tab) => ({ value: tab.key, label: tab.label, icon: tab.icon }))}
+    />
+  {/snippet}
+
   <div>
-    <h2 class="m-0 text-lg font-serif font-medium">{t('config.title')}</h2>
-    <p class="m-0 mt-0.5 text-xs text-[var(--color-text-secondary)]">{t('config.subtitle')}</p>
+    {#if section === 'entity_types'}
+      <EntityTypesPanel {createSignal} />
+    {:else if section === 'relationship_types'}
+      <RelationshipTypesPanel {createSignal} />
+    {:else if section === 'properties'}
+      <PropertiesPanel {createSignal} />
+    {:else if section === 'canon_states'}
+      <CanonStatesPanel {createSignal} />
+    {:else if section === 'levels'}
+      <EditorialLevelsPanel {createSignal} />
+    {:else}
+      <VocabulariesPanel {createSignal} />
+    {/if}
   </div>
-  <TabBar {tabs} active={section} onselect={(key) => (section = key as Section)} />
-  {#if section === 'entity_types'}
-    <EntityTypesPanel />
-  {:else if section === 'relationship_types'}
-    <RelationshipTypesPanel />
-  {:else if section === 'properties'}
-    <PropertiesPanel />
-  {:else if section === 'canon_states'}
-    <CanonStatesPanel />
-  {:else if section === 'levels'}
-    <EditorialLevelsPanel />
-  {:else}
-    <VocabulariesPanel />
-  {/if}
-</div>
+</ViewFrame>

@@ -95,3 +95,15 @@ test('showing the view already on screen does not grow the trail', () => {
 
   expect(navigation.canGoBack).toBe(false);
 });
+
+test('closing the page keeps the view and can be walked back', () => {
+  navigation.clear();
+  navigation.open('a', 'universe');
+
+  navigation.close();
+
+  expect(navigation.current).toBeNull();
+  expect(navigation.view).toBe('universe');
+  navigation.back();
+  expect(navigation.current).toBe('a');
+});

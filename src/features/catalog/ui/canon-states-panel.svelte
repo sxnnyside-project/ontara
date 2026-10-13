@@ -59,14 +59,25 @@ async function save() {
     busy = false;
   }
 }
+
+interface Props {
+  /** Raised by the view's action each time the author asks for a new entry. */
+  createSignal: number;
+}
+
+const { createSignal }: Props = $props();
+let handled = 0;
+
+$effect(() => {
+  if (createSignal > handled) {
+    handled = createSignal;
+    begin(null);
+  }
+});
 </script>
 
-<div class="flex flex-col gap-3">
-  <div class="flex items-center justify-between">
-    <p class="m-0 text-xs text-[var(--color-text-secondary)] max-w-xl">{t('config.canonStatesHint')}</p>
-    <Button variant="primary" icon="i-mingcute:add-line" onclick={() => begin(null)}>{t('config.newCanonState')}</Button>
-  </div>
 
+<div class="flex flex-col gap-3">
   <div class="rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface-panel)]">
     {#each catalog.data.canon_states as entry (entry.key)}
       <CatalogRow

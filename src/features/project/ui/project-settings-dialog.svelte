@@ -8,9 +8,11 @@ import { project } from '../state/project.svelte';
 
 interface Props {
   onclose: () => void;
+  /** Opens the backups and export dialog. */
+  ondata?: (() => void) | undefined;
 }
 
-const { onclose }: Props = $props();
+const { onclose, ondata }: Props = $props();
 
 const current = project.current;
 let name = $state(current?.name ?? '');
@@ -56,10 +58,13 @@ async function backup() {
     <span class="text-xs font-mono text-[var(--color-text-secondary)] break-all select-text">
       {current?.path}
     </span>
-    <div>
+    <div class="flex items-center gap-2">
       <Button size="sm" icon="i-mingcute:safe-flash-line" onclick={backup}>
         {t('project.backup')}
       </Button>
+      {#if ondata}
+        <Button size="sm" variant="ghost" onclick={ondata}>{t('data.open')}</Button>
+      {/if}
     </div>
   </div>
   {#snippet actions()}

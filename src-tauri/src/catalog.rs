@@ -5,6 +5,7 @@ use ontara_core::{
     ModelQueries, ModelReaderExt, PropertyDefinition, PropertyDefinitionId, PropertyGroup,
     ReferenceCount, RelationshipType, RemovalStrategy, VocabularyTerm,
 };
+use ontara_storage::Project;
 use serde::{Deserialize, Serialize};
 
 use crate::workspace::{CommandError, Workspace};
@@ -45,25 +46,28 @@ pub enum CatalogRecord {
     VocabularyTerm(VocabularyTerm),
 }
 
-pub fn get(workspace: &Workspace) -> Result<Catalog, CommandError> {
-    workspace.read(|project| {
-        let reader = project.reader();
-        Ok(Catalog {
-            entity_types: reader.entity_types()?,
-            relationship_types: reader.relationship_types()?,
-            canon_states: reader.canon_states()?,
-            editorial_levels: reader.editorial_levels()?,
-            appearance_kinds: reader.appearance_kinds()?,
-            diplomatic_stances: reader.diplomatic_stances()?,
-            property_groups: reader.property_groups()?,
-            property_definitions: reader.property_definitions()?,
-            vocabulary_terms: reader.vocabulary_terms()?,
-        })
+/// The configuration of the open project.
+pub(crate) fn snapshot(project: &Project) -> Result<Catalog, CommandError> {
+    let reader = project.reader();
+    Ok(Catalog {
+        entity_types: reader.entity_types()?,
+        relationship_types: reader.relationship_types()?,
+        canon_states: reader.canon_states()?,
+        editorial_levels: reader.editorial_levels()?,
+        appearance_kinds: reader.appearance_kinds()?,
+        diplomatic_stances: reader.diplomatic_stances()?,
+        property_groups: reader.property_groups()?,
+        property_definitions: reader.property_definitions()?,
+        vocabulary_terms: reader.vocabulary_terms()?,
     })
 }
 
+pub fn get(workspace: &Workspace) -> Result<Catalog, CommandError> {
+    workspace.read(snapshot)
+}
+
 pub fn define(workspace: &Workspace, record: CatalogRecord) -> Result<Catalog, CommandError> {
-    workspace.write(|project| {
+    workspace.record("catalog.define", |project| {
         project.edit(|editor| match record {
             CatalogRecord::EntityType(value) => editor.define_entity_type(value).map(drop),
             CatalogRecord::RelationshipType(value) => {
@@ -87,7 +91,7 @@ pub fn define(workspace: &Workspace, record: CatalogRecord) -> Result<Catalog, C
 }
 
 pub fn update(workspace: &Workspace, record: CatalogRecord) -> Result<Catalog, CommandError> {
-    workspace.write(|project| {
+    workspace.record("catalog.update", |project| {
         project.edit(|editor| match record {
             CatalogRecord::EntityType(value) => editor.update_entity_type(value).map(drop),
             CatalogRecord::RelationshipType(value) => {
@@ -118,7 +122,7 @@ pub fn usage(
 }
 
 pub fn remove(workspace: &Workspace, entry: &CatalogEntry) -> Result<Catalog, CommandError> {
-    workspace.write(|project| {
+    workspace.record("catalog.remove", |project| {
         project.edit(|editor| match entry {
             CatalogEntry::PropertyDefinition { id } => editor
                 .remove_property_definition(id, RemovalStrategy::RejectIfReferenced)
@@ -135,7 +139,7 @@ pub fn remove_property_with_values(
     workspace: &Workspace,
     id: PropertyDefinitionId,
 ) -> Result<Catalog, CommandError> {
-    workspace.write(|project| {
+    workspace.record("catalog.remove_property_with_values", |project| {
         project.edit(|editor| {
             editor
                 .remove_property_definition(&id, RemovalStrategy::RemoveDependents)

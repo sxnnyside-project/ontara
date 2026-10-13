@@ -1,4 +1,5 @@
 <script lang="ts">
+import { t } from '@/shared/i18n';
 interface Props {
   size?: 'sm' | 'md' | 'lg' | 'xl' | undefined;
   animated?: boolean | undefined;
@@ -18,7 +19,8 @@ const dimensionClass = $derived(
 
 <div
   class="relative inline-flex items-center justify-center shrink-0 select-none {dimensionClass} {animated ? 'hover:scale-105 transition-transform duration-500' : ''}"
-  title="Ontara"
+  role="img"
+  aria-label={t('common.appName')}
 >
   <svg
     viewBox="0 0 100 100"

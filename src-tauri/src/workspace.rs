@@ -2,7 +2,7 @@
 
 use std::sync::{Mutex, MutexGuard, PoisonError};
 
-use ontara_core::{DomainError, EditError, HierarchyError};
+use ontara_core::{DomainError, EditError, HierarchyError, Timestamp};
 use ontara_storage::{Project, StorageError};
 use serde::Serialize;
 
@@ -106,6 +106,19 @@ impl Workspace {
         let mut guard = self.lock();
         let project = guard.as_mut().ok_or_else(CommandError::no_project)?;
         operation(project)
+    }
+
+    /// Like [`Workspace::write`], and what the operation changes is one entry of the undo
+    /// history, named `label`: a stable machine name such as `entity.update`.
+    pub fn record<T>(
+        &self,
+        label: &'static str,
+        operation: impl FnOnce(&mut Project) -> Result<T, CommandError>,
+    ) -> Result<T, CommandError> {
+        self.write(|project| {
+            project.set_change_context(label, Timestamp::now());
+            operation(project)
+        })
     }
 
     /// Makes `project` the open one, closing the previous project first.

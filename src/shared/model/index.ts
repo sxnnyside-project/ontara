@@ -1,4 +1,5 @@
 export type { EntityRef, RecordRef, ReferenceCount } from './entity-ref';
+export { typeLabelOf } from './entity-ref';
 export type {
   AttachmentId,
   EntityId,

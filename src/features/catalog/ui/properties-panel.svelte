@@ -190,15 +190,29 @@ const dataTypeOptions = $derived(
     (value) => ({ value, label: t(`dataTypes.${value}`) }),
   ),
 );
+
+interface Props {
+  /** Raised by the view's action each time the author asks for a new entry. */
+  createSignal: number;
+}
+
+const { createSignal }: Props = $props();
+let handled = 0;
+
+$effect(() => {
+  if (createSignal > handled) {
+    handled = createSignal;
+    begin(null);
+  }
+});
 </script>
 
+
 <div class="flex flex-col gap-3">
-  <p class="m-0 text-xs text-[var(--color-text-secondary)] max-w-xl">{t('config.propertiesHint')}</p>
   <div class="flex items-end justify-between gap-3">
     <div class="w-80">
       <SelectField label={t('config.propertiesOf')} bind:value={ownerChoice} options={ownerOptions} />
     </div>
-    <Button variant="primary" icon="i-mingcute:add-line" onclick={() => begin(null)}>{t('config.newProperty')}</Button>
   </div>
 
   <div class="rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface-panel)]">

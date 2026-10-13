@@ -72,7 +72,7 @@ pub fn matrix(workspace: &Workspace, query: &MatrixQuery) -> Result<MatrixView, 
 }
 
 pub fn save(workspace: &Workspace, input: AppearanceInput) -> Result<Appearance, CommandError> {
-    workspace.write(|project| {
+    workspace.record("matrix.save", |project| {
         let now = Timestamp::now();
         let stored = match input.id {
             Some(id) => Some(found(
@@ -126,7 +126,7 @@ pub fn set_kind(
     })?;
     match kind {
         None => {
-            workspace.write(|project| {
+            workspace.record("matrix.set_kind", |project| {
                 Ok(project.edit(|editor| {
                     for appearance in &existing {
                         editor.remove_appearance(&appearance.id)?;
@@ -154,7 +154,9 @@ pub fn set_kind(
 }
 
 pub fn remove(workspace: &Workspace, id: &AppearanceId) -> Result<(), CommandError> {
-    workspace.write(|project| Ok(project.edit(|editor| editor.remove_appearance(id))?))
+    workspace.record("matrix.remove", |project| {
+        Ok(project.edit(|editor| editor.remove_appearance(id))?)
+    })
 }
 
 #[cfg(test)]

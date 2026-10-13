@@ -12,6 +12,7 @@ export type ViewKey =
   | 'timeline'
   | 'consistency'
   | 'library'
+  | 'proposals'
   | 'configuration';
 
 /** Where the author is: which view, looking at which entity. */
@@ -45,6 +46,11 @@ class Navigation {
    */
   open(id: EntityId, view: ViewKey = this.view): void {
     this.go({ entity: id, view });
+  }
+
+  /** Stops looking at any entity, staying in the same view. */
+  close(): void {
+    this.go({ entity: null, view: this.view });
   }
 
   /** Looks at the same entity through another view. */

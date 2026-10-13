@@ -57,7 +57,7 @@ pub fn tree(workspace: &Workspace) -> Result<Vec<Section>, CommandError> {
 
 /// Creates the entity and places it in the structure in one step, last among its siblings.
 pub fn add(workspace: &Workspace, input: NewSection) -> Result<Entity, CommandError> {
-    workspace.write(|project| {
+    workspace.record("editorial.add", |project| {
         let now = Timestamp::now();
         Ok(project.edit(|editor| {
             let entity = editor.add_entity(Entity::new(input.entity_type, input.name, now))?;
@@ -79,14 +79,16 @@ pub fn reorder(
     parent: Option<EntityId>,
     index: usize,
 ) -> Result<(), CommandError> {
-    workspace.write(|project| {
+    workspace.record("editorial.reorder", |project| {
         project.edit(|editor| editor.reorder_editorial_node(entity, parent, index))?;
         Ok(())
     })
 }
 
 pub fn impact(workspace: &Workspace, entity: &EntityId) -> Result<EditorialImpact, CommandError> {
-    workspace.write(|project| Ok(project.edit(|editor| editor.editorial_impact(entity))?))
+    workspace.record("editorial.impact", |project| {
+        Ok(project.edit(|editor| editor.editorial_impact(entity))?)
+    })
 }
 
 /// Takes the section out of the structure. With `delete_entity` the entity goes too, and what
@@ -96,7 +98,7 @@ pub fn remove(
     entity: &EntityId,
     delete_entity: bool,
 ) -> Result<(), CommandError> {
-    workspace.write(|project| {
+    workspace.record("editorial.remove", |project| {
         project.edit(|editor| {
             editor.remove_editorial_node(entity)?;
             if delete_entity {

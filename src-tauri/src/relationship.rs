@@ -196,7 +196,7 @@ pub fn candidates(
 }
 
 pub fn save(workspace: &Workspace, input: RelationshipInput) -> Result<Relationship, CommandError> {
-    workspace.write(|project| {
+    workspace.record("relationship.save", |project| {
         let now = Timestamp::now();
         let stored = match input.id {
             Some(id) => Some(found(
@@ -235,7 +235,9 @@ pub fn save(workspace: &Workspace, input: RelationshipInput) -> Result<Relations
 }
 
 pub fn remove(workspace: &Workspace, id: &RelationshipId) -> Result<(), CommandError> {
-    workspace.write(|project| Ok(project.edit(|editor| editor.remove_relationship(id))?))
+    workspace.record("relationship.remove", |project| {
+        Ok(project.edit(|editor| editor.remove_relationship(id))?)
+    })
 }
 
 #[cfg(test)]

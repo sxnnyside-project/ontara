@@ -5,6 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::entity::Entity;
 use crate::entity_type::{EntityRole, EntityType};
 use crate::hierarchy::HierarchyError;
+use crate::identifier::EntityId;
 use crate::repository::{ModelReader, Reader};
 use crate::type_key::TypeKey;
 
@@ -37,6 +38,23 @@ impl EntityFilter {
             || entity.tags.iter().any(|tag| contains(tag))
     }
 }
+
+/// An entity found by searching the text of the whole universe, with what matched.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct TextHit {
+    pub entity: EntityId,
+    /// Where the words were found, with the matching words between [`MATCH_START`] and
+    /// [`MATCH_END`].
+    pub excerpt: String,
+    /// Lower is a better match.
+    pub rank: f64,
+}
+
+/// Marks the start of a matching word in [`TextHit::excerpt`].
+pub const MATCH_START: char = '\u{2}';
+
+/// Marks the end of a matching word in [`TextHit::excerpt`].
+pub const MATCH_END: char = '\u{3}';
 
 /// The entities that match the filter, in the order an author expects to read them: by sort name,
 /// falling back to the name.

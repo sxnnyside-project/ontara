@@ -2,7 +2,16 @@
 import { toCommandError } from '@/shared/backend';
 import { getLocale, t, toggleLocale } from '@/shared/i18n';
 import { notices } from '@/shared/notice';
-import { Banner, Button, ConfirmDialog, OntaraLogo, SmokeBackground, TextField } from '@/shared/ui';
+import {
+  Banner,
+  Button,
+  CheckField,
+  ConfirmDialog,
+  OntaraLogo,
+  SmokeBackground,
+  TextField,
+} from '@/shared/ui';
+import { loadExampleUniverse } from '../api/example-api';
 import { chooseFolder } from '../api/choose-folder';
 import { updateUniverse } from '../api/project-api';
 import { joinPath, projectFolderName } from '../state/project-path';
@@ -22,6 +31,7 @@ let name = $state('');
 let summary = $state('');
 let description = $state('');
 let showExtraDetails = $state(false);
+let withExample = $state(false);
 
 let location = $state<string | null>(null);
 let busy = $state(false);
@@ -58,6 +68,7 @@ async function create() {
       const updated = await updateUniverse(summary.trim(), description.trim());
       project.refresh(updated);
     }
+    if (withExample) await loadExampleUniverse(getLocale());
     await onopened();
   } catch (failure) {
     error = toCommandError(failure).message;
@@ -126,7 +137,7 @@ function handleKeyDown(event: KeyboardEvent) {
             <p class="text-[11px] font-mono tracking-wider uppercase mt-2 m-0 font-medium flex items-center gap-1.5">
               <span class="text-[#a855f7]">{t('welcome.brandStudio')}</span>
               <span class="text-[var(--color-text-muted)] opacity-60">×</span>
-              <span class="text-[var(--color-crown-red)]">{t('welcome.brandEditorial')}</span>
+              <span class="text-[var(--color-crown-red-text)]">{t('welcome.brandEditorial')}</span>
             </p>
           </div>
         </div>
@@ -165,9 +176,9 @@ function handleKeyDown(event: KeyboardEvent) {
                   onclick={() => open(entry.path)}
                   class="flex-1 min-w-0 flex items-start gap-3 bg-transparent border-0 text-left p-0 cursor-pointer"
                 >
-                  <span class="i-mingcute:book-2-line w-4 h-4 text-[var(--color-crown-red)] shrink-0 mt-0.5"></span>
+                  <span class="i-mingcute:book-2-line w-4 h-4 text-[var(--color-crown-red-text)] shrink-0 mt-0.5"></span>
                   <div class="min-w-0 flex-1">
-                    <span class="block text-sm font-serif font-medium text-[var(--color-text-primary)] group-hover:text-[var(--color-crown-red)] transition-colors truncate">
+                    <span class="block text-sm font-serif font-medium text-[var(--color-text-primary)] group-hover:text-[var(--color-crown-red-text)] transition-colors truncate">
                       {entry.name}
                     </span>
                     <span class="block text-[11px] font-mono text-[var(--color-text-muted)] truncate mt-0.5" title={entry.path}>
@@ -182,7 +193,7 @@ function handleKeyDown(event: KeyboardEvent) {
                     disabled={busy}
                     onclick={() => open(entry.path)}
                     title={t('welcome.resumeProject')}
-                    class="p-1.5 rounded text-[var(--color-text-secondary)] hover:text-[var(--color-crown-red)] hover:bg-[var(--color-surface-hover)] bg-transparent border-0 cursor-pointer transition-colors"
+                    class="p-1.5 rounded text-[var(--color-text-secondary)] hover:text-[var(--color-crown-red-text)] hover:bg-[var(--color-surface-hover)] bg-transparent border-0 cursor-pointer transition-colors"
                   >
                     <span class="i-mingcute:arrow-right-line w-4 h-4"></span>
                   </button>
@@ -224,7 +235,7 @@ function handleKeyDown(event: KeyboardEvent) {
             title="{t('common.language')}: {getLocale().toUpperCase()}"
             class="flex items-center gap-1 px-2 py-1 rounded border border-[var(--color-border-subtle)] bg-[var(--color-surface-elevated)] hover:border-[var(--color-border-strong)] text-[var(--color-text-primary)] cursor-pointer"
           >
-            <span class="i-mingcute:translate-line w-3 h-3 text-[var(--color-crown-red)]"></span>
+            <span class="i-mingcute:translate-line w-3 h-3 text-[var(--color-crown-red-text)]"></span>
             <span class="font-bold">{getLocale().toUpperCase()}</span>
           </button>
 
@@ -261,7 +272,7 @@ function handleKeyDown(event: KeyboardEvent) {
             onclick={() => (activeAction = 'create')}
             class="flex items-center gap-2 pb-2 px-1 text-sm font-mono tracking-tight transition-all cursor-pointer bg-transparent border-0 relative
             {activeAction === 'create'
-              ? 'text-[var(--color-crown-red)] font-semibold'
+              ? 'text-[var(--color-crown-red-text)] font-semibold'
               : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'}"
           >
             <span class="i-mingcute:add-circle-line w-4 h-4"></span>
@@ -276,7 +287,7 @@ function handleKeyDown(event: KeyboardEvent) {
             onclick={() => (activeAction = 'open')}
             class="flex items-center gap-2 pb-2 px-1 text-sm font-mono tracking-tight transition-all cursor-pointer bg-transparent border-0 relative ml-4
             {activeAction === 'open'
-              ? 'text-[var(--color-crown-red)] font-semibold'
+              ? 'text-[var(--color-crown-red-text)] font-semibold'
               : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'}"
           >
             <span class="i-mingcute:folder-open-line w-4 h-4"></span>
@@ -314,7 +325,7 @@ function handleKeyDown(event: KeyboardEvent) {
                 onclick={() => (showExtraDetails = !showExtraDetails)}
                 class="flex items-center gap-1.5 text-xs font-mono text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] bg-transparent border-0 p-0 cursor-pointer self-start"
               >
-                <span class="{showExtraDetails ? 'i-mingcute:down-line' : 'i-mingcute:right-line'} w-3.5 h-3.5 text-[var(--color-crown-red)]"></span>
+                <span class="{showExtraDetails ? 'i-mingcute:down-line' : 'i-mingcute:right-line'} w-3.5 h-3.5 text-[var(--color-crown-red-text)]"></span>
                 <span>{t('welcome.optionalDetails')}</span>
               </button>
 
@@ -336,6 +347,12 @@ function handleKeyDown(event: KeyboardEvent) {
               {/if}
             </div>
 
+            <CheckField
+              label={t('onboarding.withExample')}
+              hint={t('onboarding.withExampleHint')}
+              bind:checked={withExample}
+            />
+
             <!-- Storage Location & Container Path Preview -->
             <div class="flex flex-col gap-2 pt-1 border-t border-[var(--color-border-subtle)]/60">
               <span class="text-[11px] font-mono uppercase tracking-wider text-[var(--color-text-muted)] font-medium">
@@ -353,12 +370,12 @@ function handleKeyDown(event: KeyboardEvent) {
 
               {#if target}
                 <div class="mt-1 flex items-center gap-2.5 p-2.5 rounded bg-[var(--color-crown-red-subtle)] border border-[var(--color-crown-red-border)] text-xs font-mono text-[var(--color-text-primary)]">
-                  <span class="i-mingcute:folder-download-line w-4 h-4 text-[var(--color-crown-red)] shrink-0"></span>
+                  <span class="i-mingcute:folder-download-line w-4 h-4 text-[var(--color-crown-red-text)] shrink-0"></span>
                   <div class="min-w-0 flex-1 truncate">
                     <span class="text-[var(--color-text-muted)] text-[10px] uppercase block">
                       {t('welcome.destinationPreview')}
                     </span>
-                    <span class="font-medium text-[var(--color-crown-red)] truncate block">{target}</span>
+                    <span class="font-medium text-[var(--color-crown-red-text)] truncate block">{target}</span>
                   </div>
                 </div>
               {/if}
@@ -435,7 +452,7 @@ function handleKeyDown(event: KeyboardEvent) {
 
             <div class="p-3.5 rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface-panel)]/50 flex flex-col gap-1.5">
               <div class="flex items-center gap-2">
-                <span class="i-mingcute:history-line w-4 h-4 text-[var(--color-crown-red)]"></span>
+                <span class="i-mingcute:history-line w-4 h-4 text-[var(--color-crown-red-text)]"></span>
                 <span class="text-xs font-serif font-medium text-[var(--color-text-primary)] truncate">
                   {t('welcome.pillarChronology')}
                 </span>

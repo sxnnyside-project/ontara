@@ -1,6 +1,7 @@
 use rusqlite::Connection;
 
 use crate::error::StorageError;
+use crate::journal;
 
 struct Migration {
     version: u32,
@@ -8,10 +9,24 @@ struct Migration {
 }
 
 /// Ordered, append-only. A shipped migration is never edited; changes are new entries.
-const MIGRATIONS: &[Migration] = &[Migration {
-    version: 1,
-    sql: include_str!("../migrations/0001_initial_schema.sql"),
-}];
+const MIGRATIONS: &[Migration] = &[
+    Migration {
+        version: 1,
+        sql: include_str!("../migrations/0001_initial_schema.sql"),
+    },
+    Migration {
+        version: 2,
+        sql: include_str!("../migrations/0002_change_history.sql"),
+    },
+    Migration {
+        version: 3,
+        sql: include_str!("../migrations/0003_full_text_search.sql"),
+    },
+    Migration {
+        version: 4,
+        sql: include_str!("../migrations/0004_proposals.sql"),
+    },
+];
 
 /// The schema version this build of Ontara writes.
 #[must_use]
@@ -24,8 +39,12 @@ pub(crate) fn current_schema_version(connection: &Connection) -> Result<u32, Sto
 }
 
 /// Applies every pending migration, each in its own transaction. Returns the new version.
+///
+/// The journal's triggers follow the tables, so they are installed again whenever a migration
+/// ran, and the history from before it is dropped.
 pub(crate) fn migrate(connection: &mut Connection) -> Result<u32, StorageError> {
     let current = current_schema_version(connection)?;
+    let mut applied = false;
     for migration in MIGRATIONS
         .iter()
         .filter(|migration| migration.version > current)
@@ -33,6 +52,13 @@ pub(crate) fn migrate(connection: &mut Connection) -> Result<u32, StorageError> 
         let transaction = connection.transaction()?;
         transaction.execute_batch(migration.sql)?;
         transaction.pragma_update(None, "user_version", migration.version)?;
+        transaction.commit()?;
+        applied = true;
+    }
+    if applied {
+        let transaction = connection.transaction()?;
+        journal::clear(&transaction)?;
+        journal::install(&transaction)?;
         transaction.commit()?;
     }
     current_schema_version(connection)

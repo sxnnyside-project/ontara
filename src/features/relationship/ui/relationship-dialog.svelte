@@ -3,6 +3,7 @@ import { catalog } from '@/features/catalog';
 import { toCommandError } from '@/shared/backend';
 import { t } from '@/shared/i18n';
 import type { EntityRef, PropertyValue, PropertyValueInput } from '@/shared/model';
+import { typeLabelOf } from '@/shared/model';
 import { PropertiesEditor, removePropertyValue, savePropertyValue } from '@/shared/properties';
 import { revision } from '@/shared/revision';
 import { Banner, Button, Dialog, SelectField, TemporalField, TextField } from '@/shared/ui';
@@ -42,18 +43,31 @@ let error = $state<string | null>(null);
 const editing = $derived(relationshipId !== undefined);
 const chosen = $derived(options[Number(optionIndex)]);
 
-const optionChoices = $derived(
-  options.map((option, index) => ({
-    value: String(index),
-    label: catalog.relationshipLabel(option.relationship_type, option.outgoing),
-  })),
-);
+/**
+ * What the author can pick. A symmetric type reads the same from both ends, and a label that
+ * already appeared is the same choice, so each is offered once.
+ */
+const optionChoices = $derived.by(() => {
+  const seen = new Set<string>();
+  const choices: { value: string; label: string }[] = [];
+  options.forEach((option, index) => {
+    const type = catalog.data.relationship_types.find(
+      (entry) => entry.key === option.relationship_type,
+    );
+    if (type?.directionality === 'undirected' && !option.outgoing) return;
+    const label = catalog.relationshipLabel(option.relationship_type, option.outgoing);
+    if (seen.has(label)) return;
+    seen.add(label);
+    choices.push({ value: String(index), label });
+  });
+  return choices.sort((a, b) => a.label.localeCompare(b.label));
+});
 
 $effect(() => {
   relationshipOptions(entity.id)
     .then((found) => {
       options = found;
-      if (!editing && found.length > 0 && optionIndex === '') optionIndex = '0';
+      if (!editing && optionIndex === '') optionIndex = optionChoices[0]?.value ?? '';
     })
     .catch((failure) => {
       error = toCommandError(failure).message;
@@ -83,10 +97,14 @@ $effect(() => {
       detail = found;
       const { relationship } = found;
       const outgoing = relationship.source === entity.id;
+      const symmetric =
+        catalog.data.relationship_types.find(
+          (entry) => entry.key === relationship.relationship_type,
+        )?.directionality === 'undirected';
       const index = options.findIndex(
         (option) =>
           option.relationship_type === relationship.relationship_type &&
-          option.outgoing === outgoing,
+          (symmetric ? option.outgoing : option.outgoing === outgoing),
       );
       optionIndex = index >= 0 ? String(index) : '';
       targetId = outgoing ? relationship.target : relationship.source;
@@ -164,7 +182,7 @@ async function removeValue(value: PropertyValue) {
       bind:value={targetId}
       options={candidates.map((candidate) => ({
         value: candidate.id,
-        label: `${candidate.name} · ${candidate.type_label}`,
+        label: `${candidate.name} · ${typeLabelOf(candidate)}`,
       }))}
       placeholder={t('relationship.chooseEntity')}
       disabled={editing}

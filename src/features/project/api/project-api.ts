@@ -39,3 +39,18 @@ export function updateUniverse(summary: string, description: string): Promise<Pr
 export function createProjectBackup(): Promise<string> {
   return call('create_project_backup');
 }
+
+/** How much the universe holds. Mirrors `UniverseCounts` in `src-tauri/src/project.rs`. */
+export interface UniverseCounts {
+  /** Entities that are not archived. */
+  entities: number;
+  relationships: number;
+  events: number;
+  sections: number;
+  appearances: number;
+  notes: number;
+}
+
+export function universeCounts(): Promise<UniverseCounts> {
+  return call('universe_counts');
+}

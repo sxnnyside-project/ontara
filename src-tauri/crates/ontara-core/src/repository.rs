@@ -19,6 +19,7 @@ use crate::diplomatic_stance::DiplomaticStance;
 use crate::editorial_level::EditorialLevel;
 use crate::editorial_node::EditorialNode;
 use crate::entity::Entity;
+use crate::entity_search::TextHit;
 use crate::entity_type::EntityType;
 use crate::event::EventCausality;
 use crate::event_detail::EventDetail;
@@ -125,6 +126,15 @@ pub trait ModelQueries: Repository {
     /// Records, of any kind, that still point at the entity, counted by kind. What belongs to
     /// the entity itself (its names, its traits, its own profile) is not a reference.
     fn references_to(&self, entity: &EntityId) -> Result<Vec<ReferenceCount>, Self::Error>;
+    /// Entities whose names, tags, summary, description, notes or property text contain the
+    /// words of `query` (the last one as a prefix), best match first. Archived entities are only
+    /// found when asked for.
+    fn search_text(
+        &self,
+        query: &str,
+        include_archived: bool,
+        limit: usize,
+    ) -> Result<Vec<TextHit>, Self::Error>;
     /// What still uses a catalog entry, counted by the kind of record. What the entry owns (a
     /// relationship type's endpoint rules, an entity type's own property definitions) is not
     /// a use.

@@ -53,15 +53,17 @@
 
   --color-border-subtle: rgba(255, 255, 255, 0.07);
   --color-border-strong: rgba(255, 255, 255, 0.14);
-  --color-border-focus: #e03144;
+  --color-border-focus: #da2d40;
 
   --color-text-primary: #f3f4f6;
   --color-text-secondary: #9ca3af;
-  --color-text-muted: #6b7280;
+  --color-text-muted: #8c94a3;
   --color-text-inverse: #0c0e12;
 
   /* Brand: Crown Red Editorial */
-  --color-crown-red: #e03144;
+  --color-crown-red: #da2d40;
+  /* Red as text: lighter than the fill so it reads on every surface. */
+  --color-crown-red-text: #f26373;
   --color-crown-red-hover: #f04255;
   --color-crown-red-active: #c52436;
   --color-crown-red-subtle: rgba(224, 49, 68, 0.12);
@@ -82,11 +84,11 @@
   --color-canon-provisional-bg: rgba(245, 158, 11, 0.12);
   --color-canon-disputed: #f97316;
   --color-canon-disputed-bg: rgba(249, 115, 22, 0.12);
-  --color-canon-deprecated: #6b7280;
+  --color-canon-deprecated: #8c94a3;
   --color-canon-deprecated-bg: rgba(107, 114, 128, 0.14);
-  --color-canon-rejected: #ef4444;
+  --color-canon-rejected: #f05252;
   --color-canon-rejected-bg: rgba(239, 68, 68, 0.12);
-  --color-canon-speculative: #a855f7;
+  --color-canon-speculative: #b678f8;
   --color-canon-speculative-bg: rgba(168, 85, 247, 0.12);
 
   /* Temporal & Chronology */
@@ -96,7 +98,7 @@
   --color-meridian-directed: #06b6d4;
 
   /* Consistency Findings */
-  --color-finding-error: #ef4444;
+  --color-finding-error: #f05252;
   --color-finding-error-bg: rgba(239, 68, 68, 0.12);
   --color-finding-warning: #f59e0b;
   --color-finding-warning-bg: rgba(245, 158, 11, 0.12);
@@ -120,14 +122,26 @@
 
   --color-text-primary: #181a1f;
   --color-text-secondary: #4b5563;
-  --color-text-muted: #838a95;
+  --color-text-muted: #59606b;
   --color-text-inverse: #f8f6f0;
 
   --color-crown-red: #c52436;
+  --color-crown-red-text: #b81f31;
   --color-crown-red-hover: #a81c2c;
   --color-crown-red-active: #8f1524;
   --color-crown-red-subtle: rgba(197, 36, 54, 0.09);
   --color-crown-red-border: rgba(197, 36, 54, 0.28);
+
+  /* Status colors, darkened so they read as text on paper. */
+  --color-canon-established: #036b4d;
+  --color-canon-provisional: #92400e;
+  --color-canon-disputed: #9a3412;
+  --color-canon-deprecated: #59606b;
+  --color-canon-rejected: #b91c1c;
+  --color-canon-speculative: #7e22ce;
+  --color-finding-error: #b91c1c;
+  --color-finding-warning: #92400e;
+  --color-finding-info: #0b647a;
 
   --color-celestial-gold: #a67c33;
   --color-celestial-gold-hover: #8f6724;
@@ -164,6 +178,28 @@ body {
   -moz-osx-font-smoothing: grayscale;
   user-select: none;
   -webkit-user-select: none;
+}
+
+/* Keyboard focus is always visible; a mouse click does not draw a ring. */
+:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+/* Whoever asked their system for less motion gets none: no drifting, no transitions. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    /* biome-ignore lint/complexity/noImportantStyles: a request for less motion must win over every component's own animation */
+    animation-duration: 0.001ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: a request for less motion must win over every component's own animation */
+    animation-iteration-count: 1 !important;
+    /* biome-ignore lint/complexity/noImportantStyles: a request for less motion must win over every component's own animation */
+    transition-duration: 0.001ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: a request for less motion must win over every component's own animation */
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Editorial Serif Headings */
@@ -206,4 +242,35 @@ samp,
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-border-strong);
+}
+
+/* Controls take the text color and font of where they sit, so a button used as a card reads like one. */
+button,
+input,
+select,
+textarea {
+  color: inherit;
+  font-family: inherit;
+}
+
+/* The surface the views sit on: a faint warm light at one corner, a cool one at the other, and a
+   cartographic dot grid, so large empty areas read as paper rather than as a flat fill. */
+.surface-ambient {
+  background-color: var(--color-surface-base);
+  background-image:
+    radial-gradient(900px 480px at 88% -10%, rgba(224, 49, 68, 0.07), transparent 70%),
+    radial-gradient(820px 520px at 6% 110%, rgba(96, 130, 255, 0.06), transparent 70%),
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.05) 1px, transparent 0);
+  background-size:
+    auto,
+    auto,
+    26px 26px;
+  background-attachment: local;
+}
+
+:root[data-theme='light'] .surface-ambient {
+  background-image:
+    radial-gradient(900px 480px at 88% -10%, rgba(224, 49, 68, 0.06), transparent 70%),
+    radial-gradient(820px 520px at 6% 110%, rgba(60, 90, 220, 0.05), transparent 70%),
+    radial-gradient(circle at 1px 1px, rgba(0, 0, 0, 0.07) 1px, transparent 0);
 }

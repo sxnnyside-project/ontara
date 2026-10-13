@@ -207,7 +207,7 @@ pub fn detail(workspace: &Workspace, id: EntityId) -> Result<EntityDetail, Comma
 }
 
 pub fn create(workspace: &Workspace, input: NewEntity) -> Result<Entity, CommandError> {
-    workspace.write(|project| {
+    workspace.record("entity.create", |project| {
         let now = Timestamp::now();
         let mut entity = Entity::new(input.entity_type, input.name, now);
         entity.summary = input.summary;
@@ -230,7 +230,7 @@ pub(crate) fn found<T>(
 }
 
 pub fn update(workspace: &Workspace, edit: EntityEdit) -> Result<Entity, CommandError> {
-    workspace.write(|project| {
+    workspace.record("entity.update", |project| {
         let mut entity = found(project.reader().entity(&edit.id)?, "entity", edit.id)?;
         entity.name = edit.name;
         entity.sort_name = edit.sort_name;
@@ -260,7 +260,9 @@ pub fn remove(
     } else {
         RemovalStrategy::RejectIfReferenced
     };
-    workspace.write(|project| Ok(project.edit(|editor| editor.remove_entity(id, strategy))?))
+    workspace.record("entity.remove", |project| {
+        Ok(project.edit(|editor| editor.remove_entity(id, strategy))?)
+    })
 }
 
 pub fn change_canon_state(
@@ -269,7 +271,7 @@ pub fn change_canon_state(
     to: TypeKey,
     reason: Option<String>,
 ) -> Result<Option<CanonStateChange>, CommandError> {
-    workspace.write(|project| {
+    workspace.record("entity.change_canon_state", |project| {
         Ok(project.edit(|editor| {
             editor.change_canon_state(target, to, reason, Origin::User, Timestamp::now())
         })?)
@@ -280,7 +282,7 @@ pub fn save_property_value(
     workspace: &Workspace,
     input: PropertyValueInput,
 ) -> Result<PropertyValue, CommandError> {
-    workspace.write(|project| {
+    workspace.record("entity.save_property_value", |project| {
         let now = Timestamp::now();
         let stored = match input.id {
             Some(id) => Some(found(
@@ -313,11 +315,13 @@ pub fn remove_property_value(
     workspace: &Workspace,
     id: &PropertyValueId,
 ) -> Result<(), CommandError> {
-    workspace.write(|project| Ok(project.edit(|editor| editor.remove_property_value(id))?))
+    workspace.record("entity.remove_property_value", |project| {
+        Ok(project.edit(|editor| editor.remove_property_value(id))?)
+    })
 }
 
 pub fn save_note(workspace: &Workspace, input: NoteInput) -> Result<Note, CommandError> {
-    workspace.write(|project| {
+    workspace.record("entity.save_note", |project| {
         let now = Timestamp::now();
         if let Some(id) = input.id {
             let mut note = found(Reader::<Note>::get(&project.reader(), &id)?, "note", id)?;
@@ -332,7 +336,9 @@ pub fn save_note(workspace: &Workspace, input: NoteInput) -> Result<Note, Comman
 }
 
 pub fn remove_note(workspace: &Workspace, id: &NoteId) -> Result<(), CommandError> {
-    workspace.write(|project| Ok(project.edit(|editor| editor.remove_note(id))?))
+    workspace.record("entity.remove_note", |project| {
+        Ok(project.edit(|editor| editor.remove_note(id))?)
+    })
 }
 
 #[cfg(test)]

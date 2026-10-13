@@ -7,7 +7,7 @@ interface Props {
   placeholder?: string | undefined;
   hint?: string | undefined;
   error?: string | null | undefined;
-  type?: 'text' | 'number' | 'search' | undefined;
+  type?: 'text' | 'number' | 'search' | 'password' | undefined;
   multiline?: boolean | undefined;
   rows?: number | undefined;
   disabled?: boolean | undefined;

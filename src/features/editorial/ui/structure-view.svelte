@@ -4,7 +4,7 @@ import { toCommandError } from '@/shared/backend';
 import { t } from '@/shared/i18n';
 import { notices } from '@/shared/notice';
 import { revision } from '@/shared/revision';
-import { Banner, Button, ConfirmDialog, EmptyState, entityIcon } from '@/shared/ui';
+import { Banner, Button, ConfirmDialog, EmptyState, ViewFrame, entityIcon } from '@/shared/ui';
 import {
   type EditorialImpact,
   getEditorialTree,
@@ -91,44 +91,61 @@ async function remove(deleteEntity: boolean) {
 const hasChildren = $derived(removing ? removing.impact.descendants > 0 : false);
 </script>
 
-<div class="flex flex-col gap-4 p-6 max-w-4xl">
-  <div class="flex items-center justify-between">
-    <div>
-      <h2 class="m-0 text-lg font-serif font-medium">{t('structure.title')}</h2>
-      <p class="m-0 mt-0.5 text-xs text-[var(--color-text-secondary)]">{t('structure.subtitle')}</p>
-    </div>
+<ViewFrame
+  icon="i-mingcute:book-2-line"
+  title={t('structure.title')}
+  description={t('structure.subtitle')}
+>
+  {#snippet actions()}
     <Button variant="primary" icon="i-mingcute:add-line" onclick={() => (creating = { parent: null })}>
       {t('structure.addTop')}
     </Button>
+  {/snippet}
+
+  <div class="flex flex-col gap-4">
+    {#if error}<Banner kind="error">{error}</Banner>{/if}
+
+    {#if rows.length === 0}
+      <EmptyState
+        icon="i-mingcute:book-2-line"
+        title={t('structure.emptyTitle')}
+        description={t('structure.emptyHint')}
+        steps={[
+          { icon: 'i-mingcute:book-2-line', title: t('structure.stepVolume'), text: t('structure.stepVolumeText') },
+          { icon: 'i-mingcute:file-line', title: t('structure.stepChapter'), text: t('structure.stepChapterText') },
+          { icon: 'i-mingcute:grid-line', title: t('structure.stepAppear'), text: t('structure.stepAppearText') },
+        ]}
+      >
+        <Button variant="primary" icon="i-mingcute:add-line" onclick={() => (creating = { parent: null })}>
+          {t('structure.addTop')}
+        </Button>
+      </EmptyState>
+    {:else}
+      <div class="rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface-panel)] divide-y divide-[var(--color-border-subtle)]">
+        {#each rows as { node, depth } (node.section.entity.id)}
+          {@const section = node.section}
+          <div class="group flex items-center gap-2 px-3 py-2 {selectedId === section.entity.id ? 'bg-[var(--color-surface-elevated)]' : ''}" style="padding-left: {0.75 + depth * 1.25}rem">
+            <span class="{entityIcon(catalog.chain(section.entity.entity_type))} w-4 h-4 shrink-0 text-[var(--color-text-muted)]"></span>
+            <button
+              type="button"
+              onclick={() => onselect(section.entity.id)}
+              class="flex-1 min-w-0 text-left bg-transparent border-0 p-0 cursor-pointer"
+            >
+              <span class="block text-sm truncate {depth === 0 ? 'font-serif font-medium' : 'font-sans'}">{section.entity.name}</span>
+              <span class="block text-[10px] font-mono text-[var(--color-text-muted)]">{catalog.levelLabel(section.level)}</span>
+            </button>
+            <div class="flex items-center opacity-60 group-hover:opacity-100 transition-opacity">
+              <Button size="sm" variant="ghost" icon="i-mingcute:up-line" title={t('structure.moveUp')} onclick={() => move(section, -1)} />
+              <Button size="sm" variant="ghost" icon="i-mingcute:down-line" title={t('structure.moveDown')} onclick={() => move(section, 1)} />
+              <Button size="sm" variant="ghost" icon="i-mingcute:add-line" title={t('structure.addInside')} onclick={() => (creating = { parent: section })} />
+              <Button size="sm" variant="ghost" icon="i-mingcute:delete-2-line" title={t('common.remove')} onclick={() => askToRemove(section)} />
+            </div>
+          </div>
+        {/each}
+      </div>
+    {/if}
   </div>
-
-  {#if error}<Banner kind="error">{error}</Banner>{/if}
-
-  {#if rows.length === 0}
-    <EmptyState icon="i-mingcute:book-2-line" title={t('structure.emptyTitle')} description={t('structure.emptyHint')} />
-  {:else}
-    <div class="rounded-lg border border-[var(--color-border-subtle)] bg-[var(--color-surface-panel)] divide-y divide-[var(--color-border-subtle)]">
-      {#each rows as { node, depth } (node.section.entity.id)}
-        {@const section = node.section}
-        <div class="flex items-center gap-2 px-3 py-2 {selectedId === section.entity.id ? 'bg-[var(--color-surface-elevated)]' : ''}" style="padding-left: {0.75 + depth * 1.25}rem">
-          <span class="{entityIcon(catalog.chain(section.entity.entity_type))} w-4 h-4 shrink-0 text-[var(--color-text-muted)]"></span>
-          <button
-            type="button"
-            onclick={() => onselect(section.entity.id)}
-            class="flex-1 min-w-0 text-left bg-transparent border-0 p-0 cursor-pointer"
-          >
-            <span class="block text-sm truncate {depth === 0 ? 'font-serif font-medium' : 'font-sans'} text-[var(--color-text-primary)]">{section.entity.name}</span>
-            <span class="block text-[10px] font-mono text-[var(--color-text-muted)]">{catalog.levelLabel(section.level)}</span>
-          </button>
-          <Button size="sm" variant="ghost" icon="i-mingcute:up-line" title={t('structure.moveUp')} onclick={() => move(section, -1)} />
-          <Button size="sm" variant="ghost" icon="i-mingcute:down-line" title={t('structure.moveDown')} onclick={() => move(section, 1)} />
-          <Button size="sm" variant="ghost" icon="i-mingcute:add-line" title={t('structure.addInside')} onclick={() => (creating = { parent: section })} />
-          <Button size="sm" variant="ghost" icon="i-mingcute:delete-2-line" title={t('common.remove')} onclick={() => askToRemove(section)} />
-        </div>
-      {/each}
-    </div>
-  {/if}
-</div>
+</ViewFrame>
 
 {#if creating}
   <SectionDialog

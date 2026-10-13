@@ -333,3 +333,32 @@ fn a_folder_without_a_manifest_is_not_a_project() -> TestResult {
     assert!(matches!(error, Some(StorageError::NotAProject(_))));
     Ok(())
 }
+
+#[test]
+fn backups_are_listed_newest_first_and_pruned_by_label() -> TestResult {
+    let sandbox = tempfile::tempdir()?;
+    let (project, _) = new_project(sandbox.path())?;
+
+    project.create_backup_labeled("auto", T0)?;
+    project.create_backup_labeled("auto", T1)?;
+    project.create_backup_labeled("auto", T2)?;
+    project.create_backup(T1)?;
+
+    let listed = project.backups()?;
+    assert_eq!(listed.len(), 4);
+    assert_eq!(listed[0].created_at, T2.as_unix_millis());
+    assert!(listed.iter().all(|file| file.size_bytes > 0));
+
+    let removed = project.prune_backups("auto", 1)?;
+    let after = project.backups()?;
+
+    assert_eq!(removed, 2);
+    assert_eq!(after.len(), 2);
+    assert!(after.iter().any(|file| file.label == "backup"));
+    assert!(
+        after
+            .iter()
+            .any(|file| file.label == "auto" && file.created_at == T2.as_unix_millis())
+    );
+    Ok(())
+}

@@ -33,7 +33,7 @@ use ontara_core::{
 use ontara_core::{
     Appearance, Attachment, CanonStateChange, CatalogEntry, EditorialNode, EntityId, EventDetail,
     ModelQueries, Note, PropertyDefinition, PropertyOwner, PropertyValue, PropertyValueOwner,
-    RecordRef, ReferenceCount, Relationship, Source, SourceReference,
+    RecordRef, ReferenceCount, Relationship, Source, SourceReference, TextHit,
 };
 
 use super::SqliteModel;
@@ -209,6 +209,15 @@ impl ModelQueries for SqliteModel<'_> {
 
     fn references_to(&self, entity: &EntityId) -> Result<Vec<ReferenceCount>, StorageError> {
         self.count_references(&entity.to_string())
+    }
+
+    fn search_text(
+        &self,
+        query: &str,
+        include_archived: bool,
+        limit: usize,
+    ) -> Result<Vec<TextHit>, StorageError> {
+        self.search(query, include_archived, limit)
     }
 
     fn catalog_usage(&self, entry: &CatalogEntry) -> Result<Vec<ReferenceCount>, StorageError> {

@@ -53,7 +53,7 @@ const config = $derived(
       <button
         type="button"
         onclick={onresolve}
-        class="text-[11px] font-mono text-[var(--color-crown-red)] hover:underline flex items-center gap-1 cursor-pointer bg-transparent border-0 p-0"
+        class="text-[11px] font-mono text-[var(--color-crown-red-text)] hover:underline flex items-center gap-1 cursor-pointer bg-transparent border-0 p-0"
       >
         <span>{t('common.inspect')}</span>
         <span class="i-mingcute:arrow-right-line w-3 h-3"></span>
@@ -70,7 +70,7 @@ const config = $derived(
       <span class="text-[10px] font-mono text-[var(--color-text-muted)]">{t('consistency.affects')}:</span>
       {#each affected as item}
         <span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded bg-[var(--color-surface-elevated)] border border-[var(--color-border-subtle)] text-[10px] font-mono text-[var(--color-text-secondary)]">
-          <span class="i-mingcute:link-2-line w-2.5 h-2.5 text-[var(--color-crown-red)]"></span>
+          <span class="i-mingcute:link-2-line w-2.5 h-2.5 text-[var(--color-crown-red-text)]"></span>
           {item}
         </span>
       {/each}

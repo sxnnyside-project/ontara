@@ -1,4 +1,5 @@
 <script lang="ts">
+import { t } from '@/shared/i18n';
 import { notices } from '@/shared/notice';
 
 const icons = {
@@ -18,7 +19,7 @@ const icons = {
       <p class="m-0 flex-1 text-[var(--color-text-primary)]">{notice.message}</p>
       <button
         type="button"
-        aria-label="Dismiss"
+        aria-label={t('common.dismiss')}
         onclick={() => notices.dismiss(notice.id)}
         class="bg-transparent border-0 p-0 cursor-pointer text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
       >

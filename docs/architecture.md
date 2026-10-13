@@ -11,6 +11,7 @@ ontara/
 ├── src/                      Frontend (Svelte 5 + TypeScript)
 │   ├── app/                  Composition root: bootstrap and shell
 │   └── features/<feature>/   One domain concept per folder: api/, ui/, state/
+│   └── (project, catalog, entity, relationship, editorial, asset, navigation, graph, matrix, timeline, consistency)
 ├── tests/                    Frontend tests, mirroring src/
 ├── src-tauri/                Rust workspace
 │   ├── src/                  Tauri adapter: commands only
@@ -74,13 +75,29 @@ The format, migration and recovery policy is in [decision 0003](decisions/0003-p
 
 ## Frontend / backend contract
 
-Every Tauri command has a DTO in Rust and a mirrored type in the matching `api/` wrapper. The Rust DTO's doc comment names the TypeScript file and vice versa. Today the only command is `get_app_info`.
+Domain records cross the boundary as they are; an adapter DTO exists only for a read model that joins records. Each command has a typed wrapper in the matching `api/` folder, and the Rust DTO's doc comment names the TypeScript file and vice versa. Adapter logic is plain functions over `Workspace` (one open project behind a lock), tested on a real temporary project, with a thin `commands.rs` per feature. See [0005](decisions/0005-authoring-adapter-and-wire-contract.md).
+
+## Analysis
+
+Graph exploration, the appearance matrix, the timeline and the consistency checks are read-only domain code in `ontara-core` with pure cores that run on hand-made records. The frontend views share one focus entity through the navigation state. See [0006](decisions/0006-analysis-views-and-consistency-checks.md).
+
+## History and search
+
+Every edit is a change set kept by the database as it happens, so any edit can be undone and redone and each new table is covered without code; full-text search is an index the migrations own and keep current. See [0007](decisions/0007-change-history-and-full-text-search.md).
+
+## Workflow
+
+The dossier of an entity (the records that describe it), the command palette, backups and export, the example universe and the getting-started list are what make the workflow quick and forgiving; accessibility, scale and the primary path are checked automatically, and usability against a person's current process by [the usability protocol](usability-protocol.md). See [0008](decisions/0008-dossier-and-the-lovable-workflow.md).
+
+## Assistants
+
+Providers and MCP clients only propose: answers become proposals that wait in their own tables until the author approves each change, and approving goes through the model editor as one undoable edit. Sending text to a provider over the internet and MCP access are off until a project turns them on; keys live in the system keychain. See [0009](decisions/0009-assistants-proposals-and-mcp.md) and [security and privacy](security-privacy.md).
 
 ## Security baseline
 
 - Strict CSP (`script-src 'self'`, no `unsafe-eval`).
 - Capabilities start from `core:default` and grow one justified permission at a time.
-- No network access is required by any feature in the repository.
+- No network access is required by any core feature. The only outbound calls are to a provider the author configured and allowed, made by the backend, on request.
 
 ## Decisions
 

@@ -41,9 +41,11 @@ const palette = {
   {title}
   {disabled}
   {onclick}
+  data-variant={variant}
+  aria-label={children ? undefined : title}
   class="inline-flex items-center justify-center gap-1.5 rounded border font-mono font-medium transition-colors cursor-pointer select-none disabled:opacity-40 disabled:cursor-not-allowed
   {size === 'sm' ? 'h-7 px-2 text-[11px]' : 'h-8 px-3 text-xs'} {palette[variant]}"
 >
-  {#if icon}<span class="{icon} w-3.5 h-3.5 shrink-0"></span>{/if}
+  {#if icon}<span class="{icon} w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>{/if}
   {@render children?.()}
 </button>
