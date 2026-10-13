@@ -1,0 +1,84 @@
+# Cargo workspace root. The root package is the Tauri adapter; domain logic lives in crates/.
+[workspace]
+resolver = "3"
+members = ["crates/*"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.90"
+license = "MIT"
+authors = ["Sxnnyside Project"]
+repository = "https://github.com/sxnnyside-project/ontara"
+homepage = "https://github.com/sxnnyside-project/ontara"
+readme = "../README.md"
+keywords = ["worldbuilding", "narrative", "tauri", "local-first"]
+categories = ["gui"]
+
+[workspace.dependencies]
+ontara-core = { path = "crates/ontara-core" }
+ontara-storage = { path = "crates/ontara-storage" }
+rusqlite = { version = "0.40", features = ["bundled", "backup"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+tempfile = "3"
+thiserror = "2"
+uuid = { version = "1", features = ["v5", "v7", "serde"] }
+tauri = { version = "2", features = [] }
+tauri-build = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+all = { level = "deny", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+unwrap_used = "warn"
+expect_used = "warn"
+missing_errors_doc = "allow"      # failure modes are documented on the error enums
+missing_panics_doc = "allow"      # panics are forbidden by the unwrap/expect lints above
+module_name_repetitions = "allow" # domain types read better with their module's concept
+
+[profile.release]
+strip = true
+lto = true
+codegen-units = 1
+
+[package]
+name = "ontara"
+description = "Local-first desktop environment for modeling and maintaining fictional universes."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories.workspace = true
+publish = false
+
+[lib]
+# `app_lib` and the three crate types are required by Tauri v2.
+name = "app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build.workspace = true
+
+[dependencies]
+ontara-core.workspace = true
+ontara-storage.workspace = true
+serde.workspace = true
+tauri.workspace = true
+tauri-plugin-dialog.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true
+tempfile.workspace = true
+
+[lints]
+workspace = true

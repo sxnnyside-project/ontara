@@ -1,0 +1,6 @@
+[install]
+frozenLockfile = true
+
+[test]
+# Compiles `*.svelte.ts` modules, so reactive state is tested without a browser.
+preload = ["./tests/setup/svelte-runes.ts"]

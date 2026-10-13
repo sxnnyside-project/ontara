@@ -1,0 +1,90 @@
+import type { TranslationSchema } from '../types';
+
+export const en: TranslationSchema = {
+  common: {
+    appName: 'Ontara',
+    tagline: 'The Meridian Design System ✦ Local-First Narrative Modeling',
+    search: 'Search',
+    searchShortcut: '⌘K',
+    themeDark: 'Switch to Midnight mode (dark)',
+    themeLight: 'Switch to Galley mode (light)',
+    language: 'Language',
+    loading: 'Loading…',
+    error: 'Error',
+    inspect: 'Inspect',
+    edit: 'Edit',
+    add: 'Add',
+    filter: 'Filter',
+  },
+  tabs: {
+    graph: 'Graph',
+    matrix: 'Matrix',
+    timeline: 'Timeline',
+    consistency: 'Consistency',
+  },
+  canon: {
+    established: 'Established',
+    provisional: 'Provisional',
+    disputed: 'Disputed',
+    deprecated: 'Deprecated',
+    rejected: 'Rejected',
+    speculative: 'Speculative',
+    filterLabel: 'Canon Filter:',
+  },
+  appearance: {
+    physical: 'Physical Presence',
+    dialogue: 'Active Dialogue',
+    pov: 'Point of View (POV)',
+    mention: 'Indirect Mention',
+    flashback: 'Flashback / Memory',
+    absence: 'Confirmed Absence',
+    none: 'No Appearance',
+  },
+  sidebar: {
+    navigator: 'Navigator',
+    editorialStructure: 'Editorial Structure',
+    entities: 'Universe Entities',
+    addEntity: 'Add entity',
+  },
+  inspector: {
+    title: 'Canonical Dossier',
+    description: 'Canonical Description',
+    aliases: 'Aliases & Titles',
+    typedRelations: 'Typed Relationships',
+    sources: 'Source & Citations',
+    editEntity: 'Edit entity',
+  },
+  timeline: {
+    title: 'In-Universe Chronology (Canonical Time)',
+    subtitle:
+      'Events ordered by absolute Universe Days (D+), independent of narrative reading order.',
+    scale: 'Scale: Universe Days (D+)',
+    dayPrefix: 'D+',
+  },
+  matrixView: {
+    title: 'Narrative Appearance Matrix',
+    subtitle: 'Classified presence per entity across the manuscript (0% emojis, 100% vector).',
+    entityHeader: 'Entity',
+  },
+  graphView: {
+    title: 'Relationship Graph Canvas',
+    subtitle: 'Connected topology of the fictional universe and causal dependencies.',
+  },
+  consistency: {
+    title: 'Deterministic Consistency Engine',
+    subtitle: 'Formal canon verification rules executed against the relational graph.',
+    rerun: 'Re-run Rules',
+    affects: 'Affects',
+    anomaliesDetected: 'anomalies detected',
+  },
+  entityTypes: {
+    character: 'Character',
+    faction: 'Faction',
+    location: 'Location',
+    event: 'Event',
+    relic: 'Relic',
+  },
+  status: {
+    sqliteLocal: 'SQLite Local-First (142 records)',
+  },
+};

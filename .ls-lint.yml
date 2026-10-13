@@ -1,0 +1,31 @@
+ls:
+  .dir: kebab-case
+  .ts: kebab-case
+  .js: kebab-case
+  .d.ts: kebab-case
+  .svelte.ts: kebab-case
+  .test.ts: kebab-case
+  .svelte: kebab-case
+  .css: kebab-case
+  .sh: kebab-case
+
+  # Root community files (README, CONTRIBUTING...) are upper-case by convention; docs are not.
+  docs:
+    .md: kebab-case
+
+  # Rust idiom: snake_case modules, kebab-case crate folders (see src-tauri/CLAUDE.md).
+  src-tauri:
+    .dir: kebab-case | snake_case
+    .rs: snake_case
+
+ignore:
+  - .git
+  - .husky
+  - .animoria
+  - .github
+  - .agents
+  - node_modules
+  - dist
+  - src-tauri/target
+  - src-tauri/gen
+  - src-tauri/icons

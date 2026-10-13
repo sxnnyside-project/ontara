@@ -1,0 +1,209 @@
+/* ==========================================================================
+   The Meridian Design System - Design Tokens
+   Ontara (Sxnnyside Project x Crown Red Editorial)
+   0% Emojis • Vector Archival Precision • Editorial Dignity
+   ========================================================================== */
+
+:root {
+  /* Typography Stacks */
+  --font-serif: 'Newsreader', Georgia, Cambria, 'Times New Roman', serif;
+  --font-sans: 'Geist Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Typography Scale */
+  --text-xs: 0.6875rem; /* 11px */
+  --text-sm: 0.8125rem; /* 13px */
+  --text-base: 0.875rem; /* 14px */
+  --text-md: 0.9375rem; /* 15px */
+  --text-lg: 1.0625rem; /* 17px */
+  --text-xl: 1.25rem; /* 20px */
+  --text-2xl: 1.5rem; /* 24px */
+  --text-3xl: 2rem; /* 32px */
+
+  /* Line Heights */
+  --leading-tight: 1.2;
+  --leading-normal: 1.45;
+  --leading-relaxed: 1.6;
+
+  /* Radius */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-full: 9999px;
+
+  /* Transitions */
+  --motion-instant: 75ms cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-fast: 150ms cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-smooth: 220ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.6);
+
+  /* Dark Theme (Default - Archival Midnight) */
+  --color-surface-base: #0c0e12;
+  --color-surface-panel: #13161c;
+  --color-surface-elevated: #1a1e26;
+  --color-surface-overlay: #222732;
+  --color-surface-hover: #29303d;
+  --color-surface-active: #323b4b;
+
+  --color-border-subtle: rgba(255, 255, 255, 0.07);
+  --color-border-strong: rgba(255, 255, 255, 0.14);
+  --color-border-focus: #e03144;
+
+  --color-text-primary: #f3f4f6;
+  --color-text-secondary: #9ca3af;
+  --color-text-muted: #6b7280;
+  --color-text-inverse: #0c0e12;
+
+  /* Brand: Crown Red Editorial */
+  --color-crown-red: #e03144;
+  --color-crown-red-hover: #f04255;
+  --color-crown-red-active: #c52436;
+  --color-crown-red-subtle: rgba(224, 49, 68, 0.12);
+  --color-crown-red-border: rgba(224, 49, 68, 0.35);
+
+  /* Celestial Gold & Astral (Official Ontara Emblem) */
+  --color-celestial-gold: #dfb76c;
+  --color-celestial-gold-hover: #eed08d;
+  --color-celestial-gold-subtle: rgba(223, 183, 108, 0.12);
+  --color-celestial-gold-border: rgba(223, 183, 108, 0.35);
+  --color-astral-indigo: #2d1b4e;
+  --color-astral-indigo-subtle: rgba(45, 27, 78, 0.25);
+
+  /* Canon States */
+  --color-canon-established: #10b981;
+  --color-canon-established-bg: rgba(16, 185, 129, 0.12);
+  --color-canon-provisional: #f59e0b;
+  --color-canon-provisional-bg: rgba(245, 158, 11, 0.12);
+  --color-canon-disputed: #f97316;
+  --color-canon-disputed-bg: rgba(249, 115, 22, 0.12);
+  --color-canon-deprecated: #6b7280;
+  --color-canon-deprecated-bg: rgba(107, 114, 128, 0.14);
+  --color-canon-rejected: #ef4444;
+  --color-canon-rejected-bg: rgba(239, 68, 68, 0.12);
+  --color-canon-speculative: #a855f7;
+  --color-canon-speculative-bg: rgba(168, 85, 247, 0.12);
+
+  /* Temporal & Chronology */
+  --color-meridian-blue: #3b82f6;
+  --color-meridian-blue-bg: rgba(59, 130, 246, 0.12);
+  --color-meridian-timeline: #60a5fa;
+  --color-meridian-directed: #06b6d4;
+
+  /* Consistency Findings */
+  --color-finding-error: #ef4444;
+  --color-finding-error-bg: rgba(239, 68, 68, 0.12);
+  --color-finding-warning: #f59e0b;
+  --color-finding-warning-bg: rgba(245, 158, 11, 0.12);
+  --color-finding-info: #06b6d4;
+  --color-finding-info-bg: rgba(6, 182, 212, 0.12);
+}
+
+/* Light Theme (Archival Paper / Crown Galley) */
+[data-theme='light'],
+.theme-light {
+  --color-surface-base: #f8f6f0;
+  --color-surface-panel: #efece4;
+  --color-surface-elevated: #e6e2d8;
+  --color-surface-overlay: #ddd8cb;
+  --color-surface-hover: #d5d0c2;
+  --color-surface-active: #c8c2b2;
+
+  --color-border-subtle: rgba(0, 0, 0, 0.08);
+  --color-border-strong: rgba(0, 0, 0, 0.16);
+  --color-border-focus: #c52436;
+
+  --color-text-primary: #181a1f;
+  --color-text-secondary: #4b5563;
+  --color-text-muted: #838a95;
+  --color-text-inverse: #f8f6f0;
+
+  --color-crown-red: #c52436;
+  --color-crown-red-hover: #a81c2c;
+  --color-crown-red-active: #8f1524;
+  --color-crown-red-subtle: rgba(197, 36, 54, 0.09);
+  --color-crown-red-border: rgba(197, 36, 54, 0.28);
+
+  --color-celestial-gold: #a67c33;
+  --color-celestial-gold-hover: #8f6724;
+  --color-celestial-gold-subtle: rgba(166, 124, 51, 0.12);
+  --color-celestial-gold-border: rgba(166, 124, 51, 0.3);
+  --color-astral-indigo: #48346b;
+  --color-astral-indigo-subtle: rgba(72, 52, 107, 0.12);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Base Desktop Reset & Typography Baseline */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--leading-normal);
+  background-color: var(--color-surface-base);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Editorial Serif Headings */
+h1,
+h2,
+h3,
+.font-serif {
+  font-family: var(--font-serif);
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  margin: 0;
+}
+
+/* Technical Monospace Elements */
+code,
+kbd,
+samp,
+.font-mono {
+  font-family: var(--font-mono);
+  font-feature-settings:
+    'tnum' on,
+    'zero' on;
+  letter-spacing: -0.02em;
+}
+
+/* Scrollbars for Desktop Studio */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-subtle);
+  border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-strong);
+}
